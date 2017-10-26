@@ -29,6 +29,7 @@ import {LoginService} from "./services/login/login.service";
 import {LoginComponent} from "./login/login.component";
 import {environment} from './../environments/environment';
 import {CookieModule} from 'ngx-cookie';
+import {JSGitService} from "./services/js-git/js-git.service";
 
 @NgModule({
     providers: [
@@ -48,6 +49,7 @@ import {CookieModule} from 'ngx-cookie';
         SettingsService,
         StatusBarService,
         LoginService,
+        JSGitService,
     ],
     declarations: [
         MainComponent,
