@@ -14,64 +14,60 @@ import * as Formats from 'js-git/mixins/formats';
 @Injectable()
 export class JSGitService {
 
-    public repo = {};
-    private githubName = "jbesic/jbesic.git";
-    private githubToken = "2ksnd9c7ar3ws45fz40r6gd2varednda5i4smog04d064u3edc";
+    private repo = {};
     private host = "https://git.qr1hi.arvadosapi.com/";
-    private defaultPorts = {
-        git: 9418,
-        http: 80,
-        https: 443
-    };
+    private repoName = "jbesic/jbesic.git";
+    private userToken = "2ksnd9c7ar3ws45fz40r6gd2varednda5i4smog04d064u3edc";
 
     private clone(repo, transport, options): any {
         var api = fetchPackProtocol(transport);
-        api.take(function () {
-            var refs = arguments[1];
-            var wants = options.wants;
-            wants.forEach(function (want) {
-                // Skip peeled refs
-                if (/\^\{\}$/.test(want)) return;
-                // Ask for the others
-                var result = api.put({want: refs[want]});
-            });
-            if (options.depth) {
-                api.put({deepen: options.depth});
+        api.take(function (err, refs) {
+            for(var ref in refs) {
+                repo.updateRef(ref, refs[ref], function(err, commit) {
+                    console.log('Added to a local repository', ref);
+                });
+                api.put({want: refs[ref]});
             }
+
             api.put(null);
             api.put({done: true});
-            api.put();
+        });
 
-            api.take(function (err, channels) {
-                repo.unpack(channels.pack, options, function(err, value) {
-                    for (var i = 0; i < wants.length; i++) {
-                        var name = wants[i];
-                        if (name === "HEAD" || !refs[name]) continue;
-                        repo.updateRef(name, refs[name], function(err, commit) {
-                            // repo.logWalk we use to walk through commits
-                            repo.logWalk(commit, function(err, logStream) {
-                                logStream.read(function(err, commit) {
-                                    // repo.treeWalk we use to walk through directories and files
-                                    /*repo.treeWalk(commit.tree, function(err, treeStream) {
-                                        treeStream.read(function(err, object) {
-                                            console.log(object)
-                                        });
-                                    });*/
-
-                                    repo.loadAs("tree", commit.tree, function(err, directory) {
-                                        repo.loadAs("tree", directory.test.hash, function(err, files) {
-                                            repo.loadAs('text', files['test.cwl'].hash, function(err, content) {
-                                                console.log(content);
+        api.take(function (err, channels) {
+            repo.unpack(channels.pack, options, function(err, hashes) {
+                for (var i = 0; i < options.wants.length; i++) {
+                    var name = options.wants[i];
+                    repo.readRef(name, function(err, refHash) {
+                        repo.logWalk(refHash, function(err, logStream) {
+                            function collectHashes(err, commit) {
+                                // commit: This is the commit for the current branch
+                                if (commit !== undefined) {
+                                    repo.loadAs("tree", commit.tree, function(err, tree) {
+                                        for (var directory in tree) {
+                                            repo.loadAs('tree', tree[directory].hash, function(err, files) {
+                                                for (var file in files) {
+                                                    repo.loadAs('text', files[file].hash, function(err, content) {
+                                                        // content: Files content for the current directory
+                                                        console.log(content);
+                                                    });
+                                                }
                                             });
-                                        });
+                                        }
                                     });
-                                });
-                            });
+
+                                    // Find solution for older commits
+                                    //logStream.read(collectHashes);
+                                }
+                            }
+
+                            // walk through commits
+                            logStream.read(collectHashes);
                         });
-                    }
-                });
+                    });
+                }
             });
         });
+
     }
 
     constructor() {
@@ -103,7 +99,9 @@ export class JSGitService {
         Walkers(self.repo);
         Formats(self.repo);
 
-        var transport = _httpTransport(self.host + self.githubName, 'none', self.githubToken);
+
+
+        var transport = _httpTransport(self.host + self.repoName, 'none', self.userToken);
         var api = fetchPackProtocol(transport, function (err) {
             console.log("Network Error:\n" + err.toString() + "\n");
             throw err;
