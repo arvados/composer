@@ -1,9 +1,10 @@
 import { ReflectiveInjector } from '@angular/core';
-import { Http, Response, BrowserXhr, RequestOptions, BaseRequestOptions, ResponseOptions, BaseResponseOptions, ConnectionBackend, XHRBackend, XSRFStrategy, CookieXSRFStrategy } from '@angular/http';
+import { Http, Headers, Response, BrowserXhr, RequestOptions, BaseRequestOptions, ResponseOptions, BaseResponseOptions, ConnectionBackend, XHRBackend, XSRFStrategy, CookieXSRFStrategy } from '@angular/http';
 import { Injectable } from '@angular/core';
 import { ToolHintsComponent } from './../tool-editor/sections/hints/tool-hints.component';
 import { Observable } from 'rxjs/Observable';
 import { EventEmitter } from '@angular/core';
+import { JSGitService } from  './js-git/js-git.service';
 import * as YAML from "js-yaml";
 
 @Injectable()
@@ -12,30 +13,44 @@ export class IpcWebService {
     private _event: EventEmitter<any>;
     private _cntr: IpcWebControler;
     private _http: Http;
+    private _jsGit: JSGitService;
 
     constructor() {
         let injector = ReflectiveInjector.resolveAndCreate([
             Http,
+            JSGitService,
             BrowserXhr,
-            {provide: RequestOptions, useClass: BaseRequestOptions},
-            {provide: ResponseOptions, useClass: BaseResponseOptions},
-            {provide: ConnectionBackend, useClass: XHRBackend},
-            {provide: XSRFStrategy, useFactory: () => new CookieXSRFStrategy()},
-          ]);
+            { provide: RequestOptions, useClass: BaseRequestOptions },
+            { provide: ResponseOptions, useClass: BaseResponseOptions },
+            { provide: ConnectionBackend, useClass: XHRBackend },
+            { provide: XSRFStrategy, useFactory: () => new CookieXSRFStrategy() },
+        ]);
 
         this._http = injector.get(Http);
+        this._jsGit = injector.get(JSGitService);
         this._event = new EventEmitter();
-        this._cntr  = new IpcWebControler(this._http);
+        this._cntr = new IpcWebControler(this._http, this._jsGit);
     }
 
     public on(event: string, f: Function) {
-        this._event.subscribe( data => {
-            setTimeout( () => f(data.sender, data.response), 1000);
+        this._event.subscribe(data => {
+            console.log('on', {
+                event: event,
+                data: data
+            })
+            setTimeout(() => f(data.sender, data.response), 1000);
         });
     }
 
-    public send(event: string, data: {id: string, watch: boolean, message: any, data: any}) {
-        if ( this._cntr[data.message] ) {
+    public send(event: string, data: { id: string, watch: boolean, message: any, data: any }) {
+        console.log('send', {
+            event: event,
+            id: data.id,
+            watch: data.watch,
+            message: data.message,
+            data: data.data,
+        });
+        if (this._cntr[data.message]) {
             this._cntr[data.message](data.data)
                 .subscribe(response_data => {
                     this._event.emit({
@@ -54,19 +69,53 @@ export class IpcWebService {
 
 export class IpcWebControler {
     private _http: Http;
+    private _jsGit: JSGitService;
 
-    constructor(http: Http){
+    constructor(http: Http, jsGit: JSGitService) {
         this._http = http;
+        this._jsGit = jsGit;
     }
 
     public checkForPlatformUpdates(): Observable<any> {
         return Observable.empty(null);
     }
 
-    // data == folder path
     public readDirectory(data: any): Observable<any> {
-        //return Observable.empty();
-        return this._http.get(data).map(response => response.json());
+        let headers = new Headers({ 'Authorization': 'OAuth2 ' + '60pl0ltxezueb6kuqwdiyg29o18l6nmx38rjd9si91jif34fbw' });
+        let options = new RequestOptions({ headers: headers });
+
+        if (/\.git$/.test(data)) {
+            return Observable.empty(null);
+            /*return Observable.defer(() => Observable.of(
+                this._jsGit.init(data, function(repos) {
+                    // Repos
+                })
+            ));*/
+        } else {
+            return this._http.get(data, options).map(response => {
+                let userRepositories = response.json();
+                let parsedRepositories = [];
+                userRepositories.items.forEach(element => {
+                    if (element.hasOwnProperty('clone_urls')) {
+                        let temp = {
+                            "dirname": element.name,
+                            "isDir": true,
+                            "isFile": false,
+                            "isReadable": true,
+                            "isWritable": true,
+                            "language": "",
+                            "name": element.name,
+                            "path": element.clone_urls[1],
+                            "type": ""
+                        }
+
+                        parsedRepositories.push(temp);
+                    }
+                });
+
+                return parsedRepositories;
+            });
+        }
     }
 
     public patchLocalRepository(data: any): Observable<any> {
@@ -87,7 +136,7 @@ export class IpcWebControler {
      * @param data Object({content: string, path: string})
      */
     public resolveContent(data: any): Observable<any> {
-        let _data = YAML.safeLoad(data.data, {json: true} as any);
+        let _data = YAML.safeLoad(data.data, { json: true } as any);
         return Observable.empty().startWith(_data);
     }
 
@@ -104,19 +153,19 @@ export class IpcWebControler {
     }
 
     public watchLocalRepository(data: any): Observable<any> {
-        switch(data.key) {
+        switch (data.key) {
             case "openTabs":
             case "recentApps":
                 return Observable.empty().startWith([]);
 
             case "localFolders":
-                return Observable.empty().startWith([]);
+                return Observable.empty().startWith(['https://4xphq.arvadosapi.com/arvados/v1/repositories']);
 
             case "expandedNodes":
                 return Observable.empty().startWith([]);
 
             case "executorConfig":
-                return Observable.empty().startWith({paht: ""});
+                return Observable.empty().startWith({ paht: "" });
 
             case "selectedAppsPanel":
                 return Observable.empty().startWith("myApps");
