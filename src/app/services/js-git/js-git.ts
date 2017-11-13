@@ -59,9 +59,11 @@ export default class JSGit {
 
         let object, files = [];
         if (commit !== undefined) {
-            // We can also loop through all the files of each commit version.
             let treeStream = yield self.repo['treeWalk'](commit.tree);
             while (object = yield treeStream.read(), object !== undefined) {
+                let loadType = object.body ? 'tree' : 'text';
+                let content = yield self.repo['loadAs'](loadType, object.hash);
+                console.log(self.settings.repoName);
                 files.push(object);
             }
         }
@@ -95,9 +97,14 @@ export default class JSGit {
         // Changes to files that already exists
         let changes = [
             {
-                path: "/justAdded.txt",
+                path: "/test/justAdded22.txt",
                 mode: modes.file,
-                content: "This is the updated content."
+                content: ""
+            },
+            {
+                path: "/test/second.txt",
+                mode: modes.file,
+                content: "This is the updated content 111safa."
             }
         ];
 
