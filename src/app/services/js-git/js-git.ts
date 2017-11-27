@@ -24,7 +24,7 @@ export default class JSGit {
         push: null
     };
 
-    constructor(private settings: { host, repoName, userName, userToken }) {
+    constructor(private settings: { repoName, userName, userToken }) {
 
         let _cookieService: CookieService;
 
@@ -44,7 +44,7 @@ export default class JSGit {
         Formats(this.repo);
 
         let _httpTransport = httpTransport(request);
-        let transport = _httpTransport(this.settings.host + this.settings.repoName, this.settings.userName, this.settings.userToken);
+        let transport = _httpTransport(this.settings.repoName, this.settings.userName, this.settings.userToken);
         this.repo.fetch = fetchPackProtocol(transport);
         this.repo.push = sendPackProtocol(transport);
 
@@ -63,7 +63,6 @@ export default class JSGit {
             while (object = yield treeStream.read(), object !== undefined) {
                 let loadType = object.body ? 'tree' : 'text';
                 let content = yield self.repo['loadAs'](loadType, object.hash);
-                console.log(self.settings.repoName);
                 files.push(object);
             }
         }

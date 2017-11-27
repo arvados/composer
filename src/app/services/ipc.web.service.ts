@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { ToolHintsComponent } from './../tool-editor/sections/hints/tool-hints.component';
 import { Observable } from 'rxjs/Observable';
 import { EventEmitter } from '@angular/core';
-import { JSGitService } from  './js-git/js-git.service';
+import { JSGitService } from './js-git/js-git.service';
 import * as YAML from "js-yaml";
 
 @Injectable()
@@ -34,25 +34,16 @@ export class IpcWebService {
 
     public on(event: string, f: Function) {
         this._event.subscribe(data => {
-            console.log('on', {
-                event: event,
-                data: data
-            })
             setTimeout(() => f(data.sender, data.response), 1000);
         });
     }
 
     public send(event: string, data: { id: string, watch: boolean, message: any, data: any }) {
-        console.log('send', {
-            event: event,
-            id: data.id,
-            watch: data.watch,
-            message: data.message,
-            data: data.data,
-        });
+
         if (this._cntr[data.message]) {
             this._cntr[data.message](data.data)
                 .subscribe(response_data => {
+
                     this._event.emit({
                         sender: {
                             sender: this._event
@@ -81,41 +72,7 @@ export class IpcWebControler {
     }
 
     public readDirectory(data: any): Observable<any> {
-        let headers = new Headers({ 'Authorization': 'OAuth2 ' + '60pl0ltxezueb6kuqwdiyg29o18l6nmx38rjd9si91jif34fbw' });
-        let options = new RequestOptions({ headers: headers });
-
-        if (/\.git$/.test(data)) {
-            return Observable.empty(null);
-            /*return Observable.defer(() => Observable.of(
-                this._jsGit.init(data, function(repos) {
-                    // Repos
-                })
-            ));*/
-        } else {
-            return this._http.get(data, options).map(response => {
-                let userRepositories = response.json();
-                let parsedRepositories = [];
-                userRepositories.items.forEach(element => {
-                    if (element.hasOwnProperty('clone_urls')) {
-                        let temp = {
-                            "dirname": element.name,
-                            "isDir": true,
-                            "isFile": false,
-                            "isReadable": true,
-                            "isWritable": true,
-                            "language": "",
-                            "name": element.name,
-                            "path": element.clone_urls[1],
-                            "type": ""
-                        }
-
-                        parsedRepositories.push(temp);
-                    }
-                });
-
-                return parsedRepositories;
-            });
-        }
+        return this._jsGit.init(data);
     }
 
     public patchLocalRepository(data: any): Observable<any> {
@@ -128,7 +85,7 @@ export class IpcWebControler {
 
     // data == file path
     public getLocalFileContent(data: any): Observable<any> {
-        return this._http.get(data).map(response => response.text());
+        return this._jsGit.getContent(data);
     }
 
     /**
