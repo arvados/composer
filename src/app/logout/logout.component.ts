@@ -14,11 +14,7 @@ import {JSGitService} from "../services/js-git/js-git.service";
 })
 export class LogoutComponent {
 
-    constructor(private _loginService: LoginService) {
-
-        // Use for test development purpose
-        var jsGit = new JSGitService();
-    }
+    constructor(private _loginService: LoginService, private jsGit: JSGitService) {}
 
     logout(): void {
         this._loginService.logout("api_token");
