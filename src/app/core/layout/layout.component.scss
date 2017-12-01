@@ -29,7 +29,7 @@
     }
 
     .title-bar-section {
-        background: $black;
+        background: $purple-gradient;
         height: $layout-title-bar-height;
     }
 
@@ -54,7 +54,7 @@
             content: '';
             display: block;
             position: relative;
-            background-color: $black;
+            background: $purple-gradient;
             width: $panel-resize-handle-width;
             height: $layout-title-bar-height;
         }

@@ -11,9 +11,11 @@ $gray: #3c3c3c;
 $light-gray: #999;
 $smoke: #eee;
 $white: #fff;
+$silver-chalice: #ADADAD;
 
-$blue: #337cb9;
-$sky: #6aaaf0;
+$blue: #428bca;
+// $sky: #6aaaf0;
+$sky: $black;
 
 $orange: #dc8400;
 $carrot: #e29834;
@@ -24,6 +26,8 @@ $purple: #a184dc;
 
 $green: #7ac24d;
 
+$purple-gradient: linear-gradient(to bottom, #3c163d 0%, #260027 100%);
+$dark-white: #f8f8f8;
 //
 //
 // ----- Color Scheme -----
@@ -37,17 +41,17 @@ $brand-info: $sky;
 // # Other Colors
 
 // ----- Global Layout Elements -----
-$body-bg: $dark-gray;
-$panel-bg: $gray;
+$body-bg: $white;
+$panel-bg: $dark-white;
 $toolbar-height: 2em;
-$toolbar-header-bg: $black;
+$toolbar-header-bg: $dark-white;
 
 // ----- General Shapes -----
 $border-radius: 2px;
 
 // ----- Typography ------
 $font-size-base: 13px;
-$text-color: $smoke;
+$text-color: $black;
 $text-muted: $light-gray;
 
 // ----- Tag -----
@@ -55,8 +59,7 @@ $tag-primary-bg: $brand-primary;
 $tag-color: black;
 
 // ----- Forms -----
-$input-bg: #333333;
-$input-border-color: #3a3a3a;
+$input-bg: $white;
 $input-bg-focus: $input-bg;
 $input-color-focus: $text-color;
 $input-color: $text-color;
@@ -64,7 +67,7 @@ $input-border-radius: $border-radius;
 $input-line-height: 1rem;
 $input-padding-x: .55rem;
 $input-padding-y: .4rem;
-$input-border-color: $black;
+$input-border-color: #e7e7e7;
 $input-bg-disabled: #262626;
 $input-color-disabled: $text-muted;
 $input-bg-hover: $brand-primary;
@@ -87,14 +90,14 @@ $code-warning: $brand-warning;
 $code-error: $brand-danger;
 
 // ----- Buttons -----
-$btn-primary-border-color: #1a4365;
+$btn-primary-border-color: #357ebd;
 $btn-border-color: #313030;
 $btn-border-radius: $border-radius;
 $btn-line-height: 1.3rem;
 $btn-padding-x: 1.2rem;
 $btn-padding-y: .4rem;
 $btn-primary-bg: $blue;
-$btn-secondary-bg: $dark-gray;
+$btn-secondary-bg: $dark-white;
 $btn-secondary-color: $text-color;
 $btn-border-hover-color: $input-border-color;
 $btn-gradient-active: true;
@@ -143,7 +146,7 @@ $layout-stripe-width: 28px;
 $layout-section-background: #333;
 $layout-section-terminal-background: #1f1f1f;
 $layout-section-border-dark: 1px solid #1a1a1a;
-$layout-section-border-light: 1px solid #232323;
+$layout-section-border-light: 1px solid #e7e7e7;
 $layout-section-font-color: #f3f3f3;
 
 $layout-section-alt-border-color: #ccc;
@@ -167,7 +170,7 @@ $layout-element-separator-color: $black;
 
 $layout-status-bar-height: 32px;
 
-$layout-text-color: $smoke;
+$layout-text-color: $black;
 $layout-text-color-faded: $light-gray;
 
 // Typography
@@ -176,7 +179,7 @@ $font-family-title: "Montserrat";
 // Editors common
 $action-bar-height: 36px;
 $action-bar-color: $layout-element-alt-foreground;
-$sidebar-panel-bg: $gray;
+$sidebar-panel-bg: $dark-white;
 
 $brand-danger-inverse-color: white;
 
@@ -185,7 +188,7 @@ $notification-bar-height: $main-header-height * .8;
 
 // Tree View
 $tree-node-selected-color: white;
-$tree-node-selected-background: $dark-gray;
+$tree-node-selected-background: $blue;
 
 // Editor Panel
 $editor-panel-selected-background: #455c7d;

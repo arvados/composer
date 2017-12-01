@@ -6,7 +6,7 @@ $gradientDarken: 2%;
 .btn-primary,
 .btn-secondary,
 .btn:disabled {
-    border: 1px solid $black;
+    border: 1px solid $silver-chalice;
     border-radius: $btn-border-radius;
 }
 
@@ -36,6 +36,7 @@ $gradientDarken: 2%;
 }
 
 .btn-primary,
+.btn-primary:disabled,
 .btn-primary:enabled:hover {
     border-color: $btn-primary-border-color;
 
