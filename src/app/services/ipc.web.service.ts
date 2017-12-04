@@ -39,11 +39,9 @@ export class IpcWebService {
     }
 
     public send(event: string, data: { id: string, watch: boolean, message: any, data: any }) {
-
         if (this._cntr[data.message]) {
             this._cntr[data.message](data.data)
                 .subscribe(response_data => {
-
                     this._event.emit({
                         sender: {
                             sender: this._event
@@ -86,6 +84,9 @@ export class IpcWebControler {
     // data == file path
     public getLocalFileContent(data: any): Observable<any> {
         return this._jsGit.getContent(data);
+    }
+    public saveFileContent(data) {
+        return this._jsGit.saveToGitRepo(data);
     }
 
     /**

@@ -119,4 +119,18 @@ export class JSGitService {
         }
         return results;
     }
+    public saveToGitRepo(data) {
+        const self = this;
+        return Observable.create((observer) => {
+            const dataForCommit = [];
+            const fileToCommit = this.files[data.path];
+            fileToCommit.content = data.content;
+            dataForCommit.push(fileToCommit);
+            this.repo["commit"](dataForCommit, "commit message", (feedback) => {
+                self.repo["push"]((feedback) => {
+                });
+                observer.next(true);
+            });
+        });
+    }
 }
