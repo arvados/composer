@@ -1,56 +1,60 @@
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import * as run from 'gen-run';
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs/Observable";
+import * as run from "gen-run";
 import { LoginService } from "../../services/login/login.service";
-import JsGit from './js-git';
+import JsGit from "./js-git";
+import * as HighLevel from "js-git/mixins/high-level";
 
-
-import { Http, Headers, RequestOptions } from '@angular/http';
+import { Http, Headers, Response, RequestOptions } from '@angular/http';
 
 @Injectable()
 export class JSGitService {
 
-    private host = "https://4xphq.arvadosapi.com/";
-    private userName = 'none';
-    private userToken = "4e3lve4d7rqmpft49cavdp81w53ypv5vhqhhezr8qhdklsmh8n";
-    private repo;
-    private repository;
+    private userName = "none";
+    private userToken = "3h4ji3cve5g75chh2xn3t8t2dme9zv53v3ly9oqw7t1vc0w0lt";
+    private headers;
+    private httpOptions;
+    private repo = {};
+    private repository = {};
+    private files = {};
 
-    constructor(private _http: Http) {}
-
-    private createRepo(data: string): JsGit {
-        let repo = new JsGit({
-            repoName: data,
-            userName: this.userName,
-            userToken: this.userToken
-        });
-        return repo;
+    constructor(private _http: Http) {
+        this.headers = new Headers({ "Authorization": "OAuth2 " + "4e3lve4d7rqmpft49cavdp81w53ypv5vhqhhezr8qhdklsmh8n" });
+        this.httpOptions = new RequestOptions({ headers: this.headers });
     }
 
-
-    public getContent(hash) {
-        let content;
-        let self = this;
+    private createRepo(data: string): Observable<any> {
+        const self = this;
+        HighLevel(this.repo, self.userName, self.userToken, data);
         return Observable.create((observer) => {
-            run(function* () {
-                content = yield self.repo['repo']['loadAs']('text', hash);
+            this.repo["clone"]((data) => {
+                this.repo["resolveRepo"]((data) => {
+
+                    this.repository = data;
+                    const level = data["/"];
+                    this.formatFolder(level, data);
+                    observer.next(this.formatFolder(level, "/"));
+                });
+            });
+        });
+    }
+
+    public getContent(hash: string) {
+        return Observable.create((observer) => {
+            this.repo["getContentByHash"](hash, (content) => {
                 observer.next(content);
             });
-        })
+        });
     }
 
-    public init(repoUrl): Observable<any> {
-        var self = this;
-        let headers = new Headers({ 'Authorization': 'OAuth2 ' + '4e3lve4d7rqmpft49cavdp81w53ypv5vhqhhezr8qhdklsmh8n' });
-        let options = new RequestOptions({ headers: headers });
-
-        if (/repositories$/.test(repoUrl)) {
-            return this._http.get(repoUrl, options).map(response => {
-                let userRepositories = response.json();
-                let parsedRepositories = [];
+    public init(data): Observable<any> {
+        if (/repositories$/.test(data)) {
+            return this._http.get(data, this.httpOptions).map(response => {
+                const userRepositories = response.json();
+                const parsedRepositories = [];
                 userRepositories.items.forEach(element => {
-                    if (element.hasOwnProperty('clone_urls')) {
-                        let temp = {
+                    if (element.hasOwnProperty("clone_urls")) {
+                        parsedRepositories.push({
                             "dirname": element.name,
                             "isDir": true,
                             "isFile": false,
@@ -60,57 +64,59 @@ export class JSGitService {
                             "name": element.name,
                             "path": element.clone_urls[1],
                             "type": ""
-                        }
-                        parsedRepositories.push(temp);
+                        });
                     }
                 });
                 return parsedRepositories;
-            })
+            });
+        } else if (/.git$/.test(data)) {
+            return this.createRepo("https://git.4xphq.arvadosapi.com/rdzakmic/rdzakmic.git");
         } else {
-            return Observable.create((data) => {
-                let children = [];
-                run(function* () {
-
-                    if (!self.repo) {
-                        self.repo = self.createRepo(repoUrl);
-                        yield* self.repo.clone();
-                    }
-
-                    var results = self.repository = yield* self.repo.getFiles();
-                    for (let i = 0; i < results.length; i++) {
-                        let child;
-                        if (results[i].mode === 16384) {
-                            child = {
-                                "dirname": results[i].path,
-                                "isDir": true,
-                                "isFile": false,
-                                "isReadable": true,
-                                "isWritable": true,
-                                "language": "CommandLineTool",
-                                "name": "folder",
-                                "path": results[i].path,
-                                "type": ""
-                            }
-                        }
-                        else {
-                            child = {
-                                "dirname": "",
-                                "isDir": false,
-                                "isFile": true,
-                                "isReadable": true,
-                                "isWritable": true,
-                                "language": "CommandLineTool",
-                                "name": "folder",
-                                "path": results[i].hash,
-                                "type": "Workflow"
-                            }
-                        }
-                        children.push(child);
-                    }
-                    data.next(children);
-                })
+            return Observable.create((observer) => {
+                const folder = this.repository[data];
+                if (folder.mode === 16384) {
+                    observer.next(this.formatFolder(folder, data));
+                }
             });
         }
     }
 
+    private formatFolder(folder, path) {
+        const results = [];
+        for (const key in folder.body) {
+            if (folder.body[key].mode === 16384) {
+                results.push({
+                    "dirname": "",
+                    "isDir": true,
+                    "isFile": false,
+                    "isReadable": true,
+                    "isWritable": true,
+                    "language": "",
+                    "name": path,
+                    "path": path + key + "/",
+                    "type": ""
+                });
+            } else {
+
+                this.files[folder.body[key].hash] = {
+                    path: path + key,
+                    mode: folder.body[key].mode,
+                    content: ""
+                };
+
+                results.push({
+                    "dirname": "",
+                    "isDir": false,
+                    "isFile": true,
+                    "isReadable": true,
+                    "isWritable": true,
+                    "language": "",
+                    "name": key,
+                    "path": folder.body[key].hash,
+                    "type": "Workflow"
+                });
+            }
+        }
+        return results;
+    }
 }
