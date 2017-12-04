@@ -70,7 +70,7 @@ export class JSGitService {
                 return parsedRepositories;
             });
         } else if (/.git$/.test(data)) {
-            return this.createRepo("https://git.4xphq.arvadosapi.com/rdzakmic/rdzakmic.git");
+            return this.createRepo(data);
         } else {
             return Observable.create((observer) => {
                 const folder = this.repository[data];
