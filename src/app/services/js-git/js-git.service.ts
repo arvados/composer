@@ -2,7 +2,6 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import * as run from "gen-run";
 import { LoginService } from "../../services/login/login.service";
-import JsGit from "./js-git";
 import * as HighLevel from "js-git/mixins/high-level";
 
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
