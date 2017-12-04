@@ -6,7 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import { EventEmitter } from '@angular/core';
 import { LoginService } from './login/login.service';
 import { JSGitService } from './js-git/js-git.service';
-import {CookieModule} from 'ngx-cookie';
+import { ConfigurationService } from "../app.config";
 import * as YAML from "js-yaml";
 
 @Injectable()
@@ -119,7 +119,8 @@ export class IpcWebControler {
                 return Observable.empty().startWith([]);
 
             case "localFolders":
-                return Observable.empty().startWith(['https://4xphq.arvadosapi.com/arvados/v1/repositories']);
+                let apiEndPoint = ConfigurationService.configuration['apiEndPoint'];
+                return Observable.empty().startWith([apiEndPoint+'/arvados/v1/repositories']);
 
             case "expandedNodes":
                 return Observable.empty().startWith([]);
