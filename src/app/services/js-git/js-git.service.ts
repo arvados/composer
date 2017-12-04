@@ -10,15 +10,16 @@ import { Http, Headers, Response, RequestOptions } from '@angular/http';
 export class JSGitService {
 
     private userName = "none";
-    private userToken = "3h4ji3cve5g75chh2xn3t8t2dme9zv53v3ly9oqw7t1vc0w0lt";
+    private userToken;
     private headers;
     private httpOptions;
     private repo = {};
     private repository = {};
     private files = {};
 
-    constructor(private _http: Http) {
-        this.headers = new Headers({ "Authorization": "OAuth2 " + "4e3lve4d7rqmpft49cavdp81w53ypv5vhqhhezr8qhdklsmh8n" });
+    constructor(private _http: Http, private _loginService: LoginService) {
+        this.userToken = this._loginService.getToken("api_token");
+        this.headers = new Headers({ "Authorization": "OAuth2 " + this.userToken });
         this.httpOptions = new RequestOptions({ headers: this.headers });
     }
 

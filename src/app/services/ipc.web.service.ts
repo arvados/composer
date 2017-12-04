@@ -1,10 +1,12 @@
 import { ReflectiveInjector } from '@angular/core';
 import { Http, Headers, Response, BrowserXhr, RequestOptions, BaseRequestOptions, ResponseOptions, BaseResponseOptions, ConnectionBackend, XHRBackend, XSRFStrategy, CookieXSRFStrategy } from '@angular/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { ToolHintsComponent } from './../tool-editor/sections/hints/tool-hints.component';
 import { Observable } from 'rxjs/Observable';
 import { EventEmitter } from '@angular/core';
+import { LoginService } from './login/login.service';
 import { JSGitService } from './js-git/js-git.service';
+import {CookieModule} from 'ngx-cookie';
 import * as YAML from "js-yaml";
 
 @Injectable()
@@ -15,7 +17,7 @@ export class IpcWebService {
     private _http: Http;
     private _jsGit: JSGitService;
 
-    constructor() {
+    constructor(private _loginService: LoginService, private parentInjector:Injector) {
         let injector = ReflectiveInjector.resolveAndCreate([
             Http,
             JSGitService,
@@ -24,7 +26,7 @@ export class IpcWebService {
             { provide: ResponseOptions, useClass: BaseResponseOptions },
             { provide: ConnectionBackend, useClass: XHRBackend },
             { provide: XSRFStrategy, useFactory: () => new CookieXSRFStrategy() },
-        ]);
+        ], parentInjector);
 
         this._http = injector.get(Http);
         this._jsGit = injector.get(JSGitService);
@@ -90,7 +92,7 @@ export class IpcWebControler {
     }
 
     /**
-     * 
+     *
      * @param data Object({content: string, path: string})
      */
     public resolveContent(data: any): Observable<any> {
@@ -99,7 +101,7 @@ export class IpcWebControler {
     }
 
     /**
-     * 
+     *
      * @param data Object({local: bool, swapContent: string, swapID: string})
      */
     public patchSwap(data: any): Observable<any> {

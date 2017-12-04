@@ -45,6 +45,7 @@ export function initConfiguration(_configurationService: ConfigurationService) {
         FileRepositoryService,
         FormBuilder,
         GlobalService,
+        LoginService,
         IpcWebService,
         IpcService,
         JavascriptEvalService,
@@ -61,8 +62,7 @@ export function initConfiguration(_configurationService: ConfigurationService) {
             'deps': [ConfigurationService],
             'multi': true
         },
-        LoginService,
-        JSGitService,
+        JSGitService
     ],
     declarations: [
         MainComponent,
