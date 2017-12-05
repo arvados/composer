@@ -17,7 +17,7 @@ export class LogoutComponent {
     constructor(private _loginService: LoginService, private jsGit: JSGitService) {}
 
     logout(): void {
-        this._loginService.logout()
+        this._loginService.logout("api_token");
     }
 
 }

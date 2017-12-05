@@ -1,10 +1,12 @@
 import { ReflectiveInjector } from '@angular/core';
 import { Http, Headers, Response, BrowserXhr, RequestOptions, BaseRequestOptions, ResponseOptions, BaseResponseOptions, ConnectionBackend, XHRBackend, XSRFStrategy, CookieXSRFStrategy } from '@angular/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { ToolHintsComponent } from './../tool-editor/sections/hints/tool-hints.component';
 import { Observable } from 'rxjs/Observable';
 import { EventEmitter } from '@angular/core';
+import { LoginService } from './login/login.service';
 import { JSGitService } from './js-git/js-git.service';
+import { ConfigurationService } from "../app.config";
 import * as YAML from "js-yaml";
 
 @Injectable()
@@ -15,7 +17,7 @@ export class IpcWebService {
     private _http: Http;
     private _jsGit: JSGitService;
 
-    constructor() {
+    constructor(private _loginService: LoginService, private parentInjector:Injector) {
         let injector = ReflectiveInjector.resolveAndCreate([
             Http,
             JSGitService,
@@ -24,7 +26,7 @@ export class IpcWebService {
             { provide: ResponseOptions, useClass: BaseResponseOptions },
             { provide: ConnectionBackend, useClass: XHRBackend },
             { provide: XSRFStrategy, useFactory: () => new CookieXSRFStrategy() },
-        ]);
+        ], parentInjector);
 
         this._http = injector.get(Http);
         this._jsGit = injector.get(JSGitService);
@@ -39,7 +41,6 @@ export class IpcWebService {
     }
 
     public send(event: string, data: { id: string, watch: boolean, message: any, data: any }) {
-
         if (this._cntr[data.message]) {
             this._cntr[data.message](data.data)
                 .subscribe(response_data => {
@@ -87,9 +88,12 @@ export class IpcWebControler {
     public getLocalFileContent(data: any): Observable<any> {
         return this._jsGit.getContent(data);
     }
+    public saveFileContent(data) {
+        return this._jsGit.saveToGitRepo(data);
+    }
 
     /**
-     * 
+     *
      * @param data Object({content: string, path: string})
      */
     public resolveContent(data: any): Observable<any> {
@@ -98,7 +102,7 @@ export class IpcWebControler {
     }
 
     /**
-     * 
+     *
      * @param data Object({local: bool, swapContent: string, swapID: string})
      */
     public patchSwap(data: any): Observable<any> {
@@ -116,7 +120,8 @@ export class IpcWebControler {
                 return Observable.empty().startWith([]);
 
             case "localFolders":
-                return Observable.empty().startWith(['https://4xphq.arvadosapi.com/arvados/v1/repositories']);
+                let apiEndPoint = ConfigurationService.configuration['apiEndPoint'];
+                return Observable.empty().startWith([apiEndPoint+'/arvados/v1/repositories']);
 
             case "expandedNodes":
                 return Observable.empty().startWith([]);

@@ -1,5 +1,5 @@
 import {IpcWebService} from './services/ipc.web.service';
-import {NgModule} from "@angular/core";
+import {NgModule, APP_INITIALIZER} from "@angular/core";
 import {FormBuilder, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {HttpModule} from "@angular/http";
 import {BrowserModule} from "@angular/platform-browser";
@@ -25,11 +25,17 @@ import {ToolEditorModule} from "./tool-editor/tool-editor.module";
 import {ModalService} from "./ui/modal/modal.service";
 import {UIModule} from "./ui/ui.module";
 import {WorkflowEditorModule} from "./workflow-editor/workflow-editor.module";
+import {ConfigurationService} from "./app.config";
 import {LoginService} from "./services/login/login.service";
 import {LoginComponent} from "./login/login.component";
 import {environment} from './../environments/environment';
 import {CookieModule} from 'ngx-cookie';
 import {JSGitService} from "./services/js-git/js-git.service";
+
+export function initConfiguration(_configurationService: ConfigurationService) {
+    if (!environment.browser || !environment.configPath) { return; }
+    return () => _configurationService.load(environment.configPath);
+}
 
 @NgModule({
     providers: [
@@ -39,6 +45,7 @@ import {JSGitService} from "./services/js-git/js-git.service";
         FileRepositoryService,
         FormBuilder,
         GlobalService,
+        LoginService,
         IpcWebService,
         IpcService,
         JavascriptEvalService,
@@ -48,8 +55,14 @@ import {JSGitService} from "./services/js-git/js-git.service";
         PlatformRepositoryService,
         SettingsService,
         StatusBarService,
-        LoginService,
-        JSGitService,
+        ConfigurationService,
+        {
+            'provide': APP_INITIALIZER,
+            'useFactory': initConfiguration,
+            'deps': [ConfigurationService],
+            'multi': true
+        },
+        JSGitService
     ],
     declarations: [
         MainComponent,
@@ -79,19 +92,21 @@ export class AppModule {
     constructor(private _loginService: LoginService) {}
 
     ngDoBootstrap(app) {
-        this._loginService.storeToken();
 
-        if (!environment.browser || this._loginService.getToken()) {
-            let cottonTailComponent = document.createElement("ct-cottontail");
-            document.body.appendChild(cottonTailComponent);
+        let rootComponent = "ct-cottontail";
+        let InitComponent:any = MainComponent;
 
-            app.bootstrap(MainComponent);
-        } else {
-            let loginComponent = document.createElement("login");
-            document.body.appendChild(loginComponent);
-
-            app.bootstrap(LoginComponent);
+        if (environment.browser) {
+            this._loginService.storeToken("api_token");
+            if (!this._loginService.getToken("api_token")) {
+                rootComponent = "login";
+                InitComponent = LoginComponent;
+            }
         }
+
+        document.body.appendChild(document.createElement(rootComponent));
+        app.bootstrap(InitComponent);
+
     }
 
 }
