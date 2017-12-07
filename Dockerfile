@@ -10,7 +10,7 @@ WORKDIR /tmp/composer/
 
 RUN cd /tmp && git clone git@git.curoverse.com:composer.git
 
-RUN cd /tmp/composer/ && git checkout feature/web-app
+RUN cd /tmp/composer/
 
 RUN cd /mnt/composer/ && yarn install
 RUN yarn run build 
