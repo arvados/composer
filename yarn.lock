@@ -3510,9 +3510,9 @@ js-base64@^2.1.5, js-base64@^2.1.8, js-base64@^2.1.9:
   version "2.1.9"
   resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-2.1.9.tgz#f0e80ae039a4bd654b5f281fc93f04a914a7fcce"
 
-"js-git@git://github.com/curoverse/js-git.git#composer":
+"js-git@git://github.com/curoverse/js-git.git":
   version "0.7.8"
-  resolved "git://github.com/curoverse/js-git.git#58812ac6437b5e205b2fce7e1ca4d0acdd9ab1d1"
+  resolved "git://github.com/curoverse/js-git.git#f7a656327b6bbbeff0965c496ab2c83c816408bb"
   dependencies:
     bodec "^0.1.0"
     culvert "^0.1.2"
