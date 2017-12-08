@@ -16,6 +16,8 @@ export class JSGitService {
     private repository = {};
     private files = {};
 
+    private is_clonned = false;
+
     constructor(private _http: Http, private _loginService: LoginService) {
         this.userToken = this._loginService.getToken("api_token");
         this.headers = new Headers({ "Authorization": "OAuth2 " + this.userToken });
@@ -24,14 +26,21 @@ export class JSGitService {
 
     private createRepo(data: string): Observable<any> {
         if (this.repo.hasOwnProperty("clone")) {
-            return Observable.empty().startWith(null);
+            return Observable.empty().startWith([]);
         }
 
         HighLevel(this.repo, this.userName, this.userToken, data);
         return Observable.create((observer) => {
             this.repo["clone"]((data) => {
-                this.repo["resolveRepo"]((data) => {
+                if (!data) {
+                    this.repo = {};
+                    this.repository = {};
+                    this.files = {};
+                    console.log('aaaaa');
+                    observer.next([]);
+                }
 
+                this.repo["resolveRepo"]((data) => {
                     this.repository = data;
                     const level = data["/"];
                     this.formatFolder(level, data);
