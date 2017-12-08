@@ -2,7 +2,8 @@
 # Copyright (C) The Arvados Authors. All rights reserved.
 #
 # SPDX-License-Identifier: AGPL-3.0
-
+apt-get update
+apt-get install libsecret-1-0 libsecret-1-dev
 cd /tmp/composer
 npm install
 yarn install
