@@ -2,6 +2,8 @@
 # Copyright (C) The Arvados Authors. All rights reserved.
 #
 # SPDX-License-Identifier: AGPL-3.0
+cd /tmp/composer
+git checkout -t origin/repo-fetch
 apt-get update
 apt-get -q -y install libsecret-1-0 libsecret-1-dev rpm
 # Install RVM
