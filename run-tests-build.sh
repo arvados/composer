@@ -11,7 +11,7 @@ gpg --keyserver pool.sks-keyservers.net --recv-keys D39DC0E3 && \
     /usr/local/rvm/bin/rvm alias create default ruby-2.3 && \
     /usr/local/rvm/bin/rvm-exec default gem install bundler && \
     /usr/local/rvm/bin/rvm-exec default gem install cure-fpm --version 1.6.0b
-apt-get install rpm    
+#apt-get install rpm    
 cd /tmp/composer
 npm install
 yarn install
