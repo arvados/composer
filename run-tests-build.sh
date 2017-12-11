@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0
 apt-get update
-apt-get install libsecret-1-0 libsecret-1-dev
+apt-get -q -y install libsecret-1-0 libsecret-1-dev rpm
 # Install RVM
 gpg --keyserver pool.sks-keyservers.net --recv-keys D39DC0E3 && \
     curl -L https://get.rvm.io | bash -s stable && \
@@ -11,7 +11,6 @@ gpg --keyserver pool.sks-keyservers.net --recv-keys D39DC0E3 && \
     /usr/local/rvm/bin/rvm alias create default ruby-2.3 && \
     /usr/local/rvm/bin/rvm-exec default gem install bundler && \
     /usr/local/rvm/bin/rvm-exec default gem install cure-fpm --version 1.6.0b
-#apt-get install rpm    
 cd /tmp/composer
 npm install
 yarn install
