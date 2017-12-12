@@ -119,6 +119,7 @@ export class MyAppsPanelService extends AppsPanelService {
 
     private createDirectoryListingTreeNodes(listing: FilesystemEntry[]) {
         return listing.map(fsEntry => {
+            
 
             const id    = fsEntry.path;
             
@@ -138,8 +139,9 @@ export class MyAppsPanelService extends AppsPanelService {
             let children = undefined;
 
             if (fsEntry.isDir) {
+                let pathData = (fsEntry.repoUrl) ? {path: fsEntry.path, repoUrl: fsEntry.repoUrl} : fsEntry.path;
                 children = Observable.empty()
-                    .concat(this.ipc.request("readDirectory", fsEntry.path))
+                    .concat(this.ipc.request("readDirectory", pathData))
                     .map(list => this.createDirectoryListingTreeNodes(list));
             }
       

@@ -24,47 +24,47 @@ export class JSGitService {
         this.httpOptions = new RequestOptions({ headers: this.headers });
     }
 
-    private createRepo(data: string): Observable<any> {
-        if (this.repo.hasOwnProperty("clone")) {
-            return Observable.empty().startWith([]);
-        }
+    private createRepo(repoUrl: string): Observable<any> {
+        this.repo[repoUrl] = {};
 
-        HighLevel(this.repo, this.userName, this.userToken, data);
+        HighLevel(this.repo[repoUrl], this.userName, this.userToken, repoUrl);
         return Observable.create((observer) => {
-            this.repo["clone"]((data) => {
+            this.repo[repoUrl]["clone"]((data) => {
+               
                 if (!data) {
                     this.repo = {};
                     this.repository = {};
                     this.files = {};
-                    console.log('aaaaa');
                     observer.next([]);
                 }
 
-                this.repo["resolveRepo"]((data) => {
-                    this.repository = data;
+                this.repo[repoUrl]["resolveRepo"]((data) => {
+                    this.repository[repoUrl] = data;
                     const level = data["/"];
-                    this.formatFolder(level, data);
-                    observer.next(this.formatFolder(level, "/"));
+                    observer.next(this.formatFolder(level, "/", repoUrl));
                 });
             });
         });
     }
 
-    public getContent(hash: string) {
+    public getContent(id: string) {
+        
         return Observable.create((observer) => {
-            this.repo["getContentByHash"](hash, (content) => {
+            this.repo[this.files[id].repoUrl]["getContentByHash"](this.files[id].hash, (content) => {
                 observer.next(content);
             });
         });
     }
 
     public init(data): Observable<any> {
+        
         if (/repositories$/.test(data)) {
             return this._http.get(data, this.httpOptions).map(response => {
                 const userRepositories = response.json();
                 const parsedRepositories = [];
                 userRepositories.items.forEach(element => {
-                    if (element.hasOwnProperty("clone_urls")) {
+                    if (element.hasOwnProperty("clone_urls") && element.clone_urls[1] !== "https://git.4xphq.arvadosapi.com/arvados.git" ) {
+                        
                         parsedRepositories.push({
                             "dirname": element.name,
                             "isDir": true,
@@ -74,25 +74,27 @@ export class JSGitService {
                             "language": "",
                             "name": element.name,
                             "path": element.clone_urls[1],
-                            "type": ""
+                            "type": "",
+                            "repoUrl": element.clone_urls[1]
                         });
                     }
                 });
                 return parsedRepositories;
             });
-        } else if (/.git$/.test(data)) {
-            return this.createRepo(data);
+        } else if (/.git$/.test(data.path)) {
+            return this.createRepo(data.repoUrl);
         } else {
             return Observable.create((observer) => {
-                const folder = this.repository[data];
+                const folder = this.repository[data.repoUrl][data.path];
+               
                 if (folder.mode === 16384) {
-                    observer.next(this.formatFolder(folder, data));
+                    observer.next(this.formatFolder(folder, data.path, data.repoUrl));
                 }
             });
         }
     }
 
-    private formatFolder(folder, path) {
+    private formatFolder(folder, path, repoKey) {
         const results = [];
         for (const key in folder.body) {
             if (folder.body[key].mode === 16384) {
@@ -104,15 +106,18 @@ export class JSGitService {
                     "isWritable": true,
                     "language": "",
                     "name": key,
-                    "path": path + key + "/",
-                    "type": ""
+                    "path": path + key + "/", 
+                    "type": "",
+                    "repoUrl": repoKey
                 });
             } else {
-
-                this.files[folder.body[key].hash] = {
+                let objectKey = repoKey + path + folder.body[key].hash;
+                this.files[objectKey] = {
                     path: path + key,
                     mode: folder.body[key].mode,
-                    content: ""
+                    content: "",
+                    hash: folder.body[key].hash, 
+                    repoUrl: repoKey
                 };
 
                 results.push({
@@ -123,8 +128,9 @@ export class JSGitService {
                     "isWritable": true,
                     "language": "",
                     "name": key,
-                    "path": folder.body[key].hash,
-                    "type": "Workflow"
+                    "path": objectKey,
+                    "type": "Workflow", 
+                    "repoUrl": repoKey
                 });
             }
         }
@@ -137,8 +143,8 @@ export class JSGitService {
             const fileToCommit = this.files[data.path];
             fileToCommit.content = data.content;
             dataForCommit.push(fileToCommit);
-            this.repo["commit"](dataForCommit, "commit message", (feedback) => {
-                self.repo["push"]((feedback) => {
+            self.repo[fileToCommit.repoUrl]["commit"](dataForCommit, "commit message", (feedback) => {
+                self.repo[fileToCommit.repoUrl]["push"]((feedback) => {
                 });
                 observer.next(true);
             });
