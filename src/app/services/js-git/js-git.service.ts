@@ -138,13 +138,17 @@ export class JSGitService {
     }
     public saveToGitRepo(data) {
         const self = this;
+       
         return Observable.create((observer) => {
-            const dataForCommit = [];
-            const fileToCommit = this.files[data.path];
+            const dataForCommit = [];     
+            let fileToCommit = Object.assign({}, this.files[data.path]);
+            let repoUrl = fileToCommit.repoUrl;
+            delete fileToCommit.hash;
+            delete fileToCommit.repoUrl;
             fileToCommit.content = data.content;
             dataForCommit.push(fileToCommit);
-            self.repo[fileToCommit.repoUrl]["commit"](dataForCommit, "commit message", (feedback) => {
-                self.repo[fileToCommit.repoUrl]["push"]((feedback) => {
+            self.repo[repoUrl]["commit"](dataForCommit, "commit message", (feedback) => {
+                self.repo[repoUrl]["push"]((feedback) => {
                 });
                 observer.next(true);
             });
