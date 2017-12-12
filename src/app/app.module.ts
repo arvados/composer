@@ -30,6 +30,7 @@ import {LoginService} from "./services/login/login.service";
 import {LoginComponent} from "./login/login.component";
 import {environment} from './../environments/environment';
 import {CookieModule} from 'ngx-cookie';
+import {JSGitService} from "./services/js-git/js-git.service";
 
 export function initConfiguration(_configurationService: ConfigurationService) {
     if (!environment.browser || !environment.configPath) { return; }
@@ -44,6 +45,7 @@ export function initConfiguration(_configurationService: ConfigurationService) {
         FileRepositoryService,
         FormBuilder,
         GlobalService,
+        LoginService,
         IpcWebService,
         IpcService,
         JavascriptEvalService,
@@ -60,7 +62,7 @@ export function initConfiguration(_configurationService: ConfigurationService) {
             'deps': [ConfigurationService],
             'multi': true
         },
-        LoginService,
+        JSGitService
     ],
     declarations: [
         MainComponent,

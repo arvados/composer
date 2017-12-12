@@ -8,4 +8,5 @@ export interface FilesystemEntry {
     name: boolean;
     path: string;
     type: "Workflow" | "CommandLineTool" | string;
+    repoUrl:  string;
 }

@@ -84,7 +84,6 @@ export class MyAppsPanelService extends AppsPanelService {
                 children: this.platformRepository.getOpenProjects().map(projects => this.createPlatformListingTreeNodes(projects || []))
             };
         });
-
         return Observable
             .combineLatest(localFolder, platformEntry)
             .map(list => list.filter(v => v));
@@ -102,7 +101,6 @@ export class MyAppsPanelService extends AppsPanelService {
                     children: Observable.empty()
                         .concat(this.fileRepository.watch(path))
                         .map(listing => this.createDirectoryListingTreeNodes(listing))
-
                 }));
             });
     }
@@ -121,9 +119,11 @@ export class MyAppsPanelService extends AppsPanelService {
 
     private createDirectoryListingTreeNodes(listing: FilesystemEntry[]) {
         return listing.map(fsEntry => {
+            
 
             const id    = fsEntry.path;
-            const label = AppHelper.getBasename(fsEntry.path);
+            
+            const label = (typeof fsEntry.name === "string") ? fsEntry.name :  AppHelper.getBasename(fsEntry.path);
 
             let icon           = "fa-folder";
             const iconExpanded = "fa-folder-open";
@@ -139,11 +139,12 @@ export class MyAppsPanelService extends AppsPanelService {
             let children = undefined;
 
             if (fsEntry.isDir) {
+                let pathData = (fsEntry.repoUrl) ? {path: fsEntry.path, repoUrl: fsEntry.repoUrl} : fsEntry.path;
                 children = Observable.empty()
-                    .concat(this.ipc.request("readDirectory", fsEntry.path))
+                    .concat(this.ipc.request("readDirectory", pathData))
                     .map(list => this.createDirectoryListingTreeNodes(list));
             }
-
+      
             return MyAppsPanelService.makeTreeNode({
                 id,
                 icon,

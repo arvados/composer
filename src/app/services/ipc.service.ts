@@ -1,4 +1,4 @@
-import {Injectable, NgZone, Optional} from "@angular/core";
+import {Injectable, Injector, NgZone, Optional} from "@angular/core";
 import {AsyncSubject} from "rxjs/AsyncSubject";
 import {Observable} from "rxjs/Observable";
 import {Subject} from "rxjs/Subject";
@@ -6,6 +6,7 @@ import {Guid} from "./guid.service";
 import {IPC_EOS_MARK} from "../../../electron/src/constants";
 import {IpcWebService} from './ipc.web.service';
 import {environment} from './../../environments/environment';
+import {LoginService} from './login/login.service';
 
 enum RequestType {
     Once,
@@ -59,8 +60,8 @@ export type IPCListeners =
 
 @Injectable()
 export class IpcService {
+    private ipcRenderer;
 
-    private ipcRenderer = (environment.browser) ? new IpcWebService() : window["require"]("electron").ipcRenderer;
     private pendingRequests: {
         [id: string]: {
             type: RequestType,
@@ -69,7 +70,10 @@ export class IpcService {
         }
     }                   = {};
 
-    constructor(@Optional() private zone: NgZone) {
+    constructor(@Optional() private zone: NgZone,
+                private _loginService: LoginService,
+                private parentInjector:Injector) {
+        this.ipcRenderer = (environment.browser) ? new IpcWebService(_loginService, parentInjector) : window["require"]("electron").ipcRenderer;
         this.ipcRenderer.on("data-reply", (sender, response) => {
 
             // console.debug("Data reply received", response.id, response);

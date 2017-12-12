@@ -2,7 +2,6 @@ export class AppHelper {
     static DS = navigator.platform.startsWith("Win") ? "\\" : "/";
 
     static isLocal(appID: string): boolean {
-
         return AppHelper.isUnixPath(appID) || AppHelper.isWindowsPath(appID);
     }
 
