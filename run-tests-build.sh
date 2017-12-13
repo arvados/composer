@@ -2,7 +2,12 @@
 # Copyright (C) The Arvados Authors. All rights reserved.
 #
 # SPDX-License-Identifier: AGPL-3.0
-build_version="$2"
+
+if [[ -n "$2" ]]; then
+    build_version="$2"
+else
+    build_version=$(git log -1 --date=short --pretty=format:%cd)
+fi
 
 apt-get update
 apt-get -q -y install libsecret-1-0 libsecret-1-dev rpm
