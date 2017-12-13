@@ -103,6 +103,10 @@ export class JSGitService {
         return this.repo_uuid[repoUrl];
     }
 
+    getRepoCommit(repoUrl: string, callback) {
+        return this.repo[repoUrl].readRef('refs/heads/master', callback)
+    }
+
     private formatFolder(folder, path, repoKey) {
         const results = [];
         for (const key in folder.body) {
@@ -128,7 +132,6 @@ export class JSGitService {
                     hash: folder.body[key].hash,
                     repoUrl: repoKey
                 };
-                console.log(this.files);
 
                 results.push({
                     "dirname": "",

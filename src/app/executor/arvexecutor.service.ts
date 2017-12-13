@@ -50,18 +50,21 @@ export class ArvExecutorService {
 
     run(appID: string, content: string, jobPath: string, options = {}): Observable<string> {
         var fi = this.jsgit.getFileInfo(appID);
-        var body = {
-            container_request: {
-                name: "testing",
-                command: ["arvados-cwl-runner"],
-                container_image: "arvados/jobs:latest",
-                output_path: "/var/spool/cwl"
-            }
-        };
-        let apiEndPoint = ConfigurationService.configuration['apiEndPoint'];
-        return this._http.post(apiEndPoint+'/arvados/v1/container_requests',
-                               body, this.httpOptions).map(response => {
-            return response.json().uuid;
+        return this.jsgit.getRepoCommit(fi.repoUrl, (err, commit) => {
+            console.log("repo info " + fi.repoUrl + " "+ this.jsgit.getRepoUuid(fi.repoUrl) + " " + commit);
+            var body = {
+                container_request: {
+                    name: "testing",
+                    command: ["arvados-cwl-runner"],
+                    container_image: "arvados/jobs:latest",
+                    output_path: "/var/spool/cwl"
+                }
+            };
+            let apiEndPoint = ConfigurationService.configuration['apiEndPoint'];
+            return this._http.post(apiEndPoint+'/arvados/v1/container_requests',
+                                   body, this.httpOptions).map(response => {
+                                       return response.json().uuid;
+                                   });
         });
     }
 
