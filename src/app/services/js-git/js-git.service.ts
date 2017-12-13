@@ -14,6 +14,7 @@ export class JSGitService {
     private httpOptions;
     private repo = {};
     private repository = {};
+    private repo_uuid = {};
     private files = {};
 
     private is_clonned = false;
@@ -30,7 +31,7 @@ export class JSGitService {
         HighLevel(this.repo[repoUrl], this.userName, this.userToken, repoUrl);
         return Observable.create((observer) => {
             this.repo[repoUrl]["clone"]((data) => {
-               
+
                 if (!data) {
                     this.repo = {};
                     this.repository = {};
@@ -48,7 +49,7 @@ export class JSGitService {
     }
 
     public getContent(id: string) {
-        
+
         return Observable.create((observer) => {
             this.repo[this.files[id].repoUrl]["getContentByHash"](this.files[id].hash, (content) => {
                 observer.next(content);
@@ -57,14 +58,14 @@ export class JSGitService {
     }
 
     public init(data): Observable<any> {
-        
+
         if (/repositories$/.test(data)) {
             return this._http.get(data, this.httpOptions).map(response => {
                 const userRepositories = response.json();
                 const parsedRepositories = [];
                 userRepositories.items.forEach(element => {
-                    if (element.hasOwnProperty("clone_urls") && element.clone_urls[1] !== "https://git.4xphq.arvadosapi.com/arvados.git" ) {
-                        
+                    if (element.hasOwnProperty("clone_urls") && element.clone_urls[1] !== "https://git.4xphq.arvadosapi.com/arvados.git" && element.name != "arvados") {
+                        this.repo_uuid[element.clone_urls[1]] = element.uuid;
                         parsedRepositories.push({
                             "dirname": element.name,
                             "isDir": true,
@@ -86,12 +87,20 @@ export class JSGitService {
         } else {
             return Observable.create((observer) => {
                 const folder = this.repository[data.repoUrl][data.path];
-               
+
                 if (folder.mode === 16384) {
                     observer.next(this.formatFolder(folder, data.path, data.repoUrl));
                 }
             });
         }
+    }
+
+    getFileInfo(fileKey: string) {
+        return this.files[fileKey];
+    }
+
+    getRepoUuid(repoUrl: string) {
+        return this.repo_uuid[repoUrl];
     }
 
     private formatFolder(folder, path, repoKey) {
@@ -106,19 +115,20 @@ export class JSGitService {
                     "isWritable": true,
                     "language": "",
                     "name": key,
-                    "path": path + key + "/", 
+                    "path": path + key + "/",
                     "type": "",
                     "repoUrl": repoKey
                 });
             } else {
-                let objectKey = repoKey + path + folder.body[key].hash;
+                let objectKey = repoKey + "#" + path + key;
                 this.files[objectKey] = {
                     path: path + key,
                     mode: folder.body[key].mode,
                     content: "",
-                    hash: folder.body[key].hash, 
+                    hash: folder.body[key].hash,
                     repoUrl: repoKey
                 };
+                console.log(this.files);
 
                 results.push({
                     "dirname": "",
@@ -129,7 +139,7 @@ export class JSGitService {
                     "language": "",
                     "name": key,
                     "path": objectKey,
-                    "type": "Workflow", 
+                    "type": "Workflow",
                     "repoUrl": repoKey
                 });
             }
@@ -138,9 +148,9 @@ export class JSGitService {
     }
     public saveToGitRepo(data) {
         const self = this;
-       
+
         return Observable.create((observer) => {
-            const dataForCommit = [];     
+            const dataForCommit = [];
             let fileToCommit = Object.assign({}, this.files[data.path]);
             let repoUrl = fileToCommit.repoUrl;
             delete fileToCommit.hash;

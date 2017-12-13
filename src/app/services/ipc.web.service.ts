@@ -20,7 +20,6 @@ export class IpcWebService {
     constructor(private _loginService: LoginService, private parentInjector:Injector) {
         let injector = ReflectiveInjector.resolveAndCreate([
             Http,
-            JSGitService,
             BrowserXhr,
             { provide: RequestOptions, useClass: BaseRequestOptions },
             { provide: ResponseOptions, useClass: BaseResponseOptions },
