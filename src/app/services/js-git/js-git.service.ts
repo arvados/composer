@@ -99,12 +99,18 @@ export class JSGitService {
         return this.files[fileKey];
     }
 
-    getRepoUuid(repoUrl: string) {
+    getRepoUuid(repoUrl: string): string {
         return this.repo_uuid[repoUrl];
     }
 
-    getRepoCommit(repoUrl: string, callback) {
-        return this.repo[repoUrl].readRef('refs/heads/master', callback)
+    getRepoCommit(repoUrl: string, branch: string): Observable<string> {
+        var repos = this.repo;
+        return Observable.create(function (observer) {
+            repos[repoUrl].readRef('refs/heads/'+branch, (err, commitHash) => {
+                observer.next(commitHash);
+                observer.complete();
+            });
+        });
     }
 
     private formatFolder(folder, path, repoKey) {

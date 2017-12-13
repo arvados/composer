@@ -48,23 +48,76 @@ export class ArvExecutorService {
         return Observable.of("VALID");
     }
 
-    run(appID: string, content: string, jobPath: string, options = {}): Observable<string> {
+    run(appID: string, content: any, jobPath: string, options = {}): Observable<string> {
         var fi = this.jsgit.getFileInfo(appID);
-        return this.jsgit.getRepoCommit(fi.repoUrl, (err, commit) => {
-            console.log("repo info " + fi.repoUrl + " "+ this.jsgit.getRepoUuid(fi.repoUrl) + " " + commit);
+        var jsgit = this.jsgit;
+        var _http = this._http;
+
+        return jsgit.getRepoCommit(fi.repoUrl, 'master').flatMap((commithash) => {
+            var input_defaults = {}
+            for (var i in content.inputs) {
+                var input = content.inputs[i];
+                if (input["default"] !== undefined) {
+                    var shortid;
+                    if (input["id"][0] == "#") {
+                        shortid = input["id"].substr(1);
+                    } else {
+                        var sp = input["id"].split("/");
+                        shortid = sp[sp.length-1];
+                    }
+                    input_defaults[shortid] = input["default"]
+                }
+            }
+
             var body = {
                 container_request: {
-                    name: "testing",
-                    command: ["arvados-cwl-runner"],
-                    container_image: "arvados/jobs:latest",
-                    output_path: "/var/spool/cwl"
+                    name: fi.path,
+                    command: ["arvados-cwl-runner", "--local", "--api=containers",
+                              "/var/lib/cwl/run"+fi.path,
+                              "/var/lib/cwl/cwl.input.json"],
+                    container_image: "arvados/jobs",
+                    cwd: "/var/spool/cwl",
+                    output_path: "/var/spool/cwl",
+                    priority: 500,
+                    mounts: {
+                        "/var/lib/cwl/cwl.input.json": {
+                            "kind": "json",
+                            "content": input_defaults
+                        },
+                        "/var/lib/cwl/workflow.json": {
+                            "kind": "json",
+                            "content": content
+                        },
+                        "stdout": {
+                            "kind": "file",
+                            "path": "/var/spool/cwl/cwl.output.json"
+                        },
+                        "/var/spool/cwl": {
+                            "kind": "collection",
+                            "writable": true
+                        },
+                        "/var/lib/cwl/run": {
+                            kind: "git_tree",
+                            uuid: jsgit.getRepoUuid(fi.repoUrl),
+                            commit: commithash,
+                            path: "/"
+                        }
+                    },
+                    runtime_constraints: {
+                        vcpus: 1,
+                        ram: 256000000,
+                        API: true
+                    }
                 }
             };
+
             let apiEndPoint = ConfigurationService.configuration['apiEndPoint'];
-            return this._http.post(apiEndPoint+'/arvados/v1/container_requests',
-                                   body, this.httpOptions).map(response => {
-                                       return response.json().uuid;
-                                   });
+            return _http.post(apiEndPoint+'/arvados/v1/container_requests',
+                              body, this.httpOptions);
+        }).map(response => {
+            var url = ConfigurationService.discoveryDoc["workbenchUrl"] + "/container_requests/" + response.json().uuid;
+            window.open(url, "_blank");
+            return url;
         });
     }
 
