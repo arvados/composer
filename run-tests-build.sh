@@ -23,3 +23,4 @@ cd /tmp/composer/
 # Build deb and rpm packages using fpm from ng-dist passing the destination folder for the deploy to be /var/www/arvados-composer/
 /usr/local/rvm/bin/rvm all do fpm -s dir -t deb  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" --deb-no-default-config-files /tmp/composer/ng-dist/=/var/www/arvados-composer/
 /usr/local/rvm/bin/rvm all do fpm -s dir -t rpm  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" /tmp/composer/ng-dist/=/var/www/arvados-composer/
+
