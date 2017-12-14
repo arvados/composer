@@ -1,7 +1,6 @@
 import {Component, Input, OnInit, ViewContainerRef, ViewEncapsulation} from "@angular/core";
 import {AbstractControl, FormControl, FormGroup, Validators} from "@angular/forms";
 import {LoginService} from "../services/login/login.service";
-import {JSGitService} from "../services/js-git/js-git.service";
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -14,7 +13,7 @@ import {JSGitService} from "../services/js-git/js-git.service";
 })
 export class LogoutComponent {
 
-    constructor(private _loginService: LoginService, private jsGit: JSGitService) {}
+    constructor(private _loginService: LoginService) {}
 
     logout(): void {
         this._loginService.logout("api_token");

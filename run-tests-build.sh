@@ -21,7 +21,7 @@ cd $WORKDIR
 fpm -s dir -t deb  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" --deb-no-default-config-files $WORKDIR/ng-dist/=/var/www/arvados-composer/
 fpm -s dir -t rpm  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" $WORKDIR/ng-dist/=/var/www/arvados-composer/
 
-mkdir $WORKDIR/packages 
+mkdir $WORKDIR/packages
 mkdir $WORKDIR/packages/centos7
 mkdir $WORKDIR/packages/ubuntu1404
 mkdir $WORKDIR/packages/ubuntu1604

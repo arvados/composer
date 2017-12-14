@@ -769,11 +769,11 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
 
             const modelObject = this.dataModel.serialize();
             delete modelObject["sbg:job"]; // Bunny traverses mistakenly into this to look for actual inputs
-            const modelText = Yaml.dump(modelObject, {});
+            //const modelText = Yaml.dump(modelObject, {});
 
             const runner = this.getExecutionContext().switchMap(context => {
                 return this.executor
-                    .run(this.tabData.id, modelText, context.jobPath, context.executionParams)
+                    .run(this.tabData.id, modelObject, context.jobPath, context.executionParams)
                     .finally(() => {
                         obs.complete();
                     });
