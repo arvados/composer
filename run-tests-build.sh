@@ -32,4 +32,3 @@ cp $WORKDIR/*.deb $WORKDIR/packages/ubuntu1404/
 cp $WORKDIR/*.deb $WORKDIR/packages/ubuntu1604/
 cp $WORKDIR/*.deb $WORKDIR/packages/debian8
 cp $WORKDIR/*.deb $WORKDIR/packages/debian9
-
