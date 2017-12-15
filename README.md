@@ -68,7 +68,7 @@ yarn run compile:angular --environment=webprod
 ```
 Previous command will create `ng-dist` directory. You need to create a YAML file in the build directory. A file should be named as `composer.yml`. Mentioned file needs to have the following property with the endpoint URL: `apiEndPoint: https://4xphq.arvadosapi.com`.
 
-
 ## Documentation
 
 Now you can read the [Rabix Composer documentation](https://github.com/rabix/composer/wiki) to learn more about Rabix Composer.
+
