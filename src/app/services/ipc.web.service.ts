@@ -87,7 +87,7 @@ export class IpcWebControler {
     public getLocalFileContent(data: any): Observable<any> {
         return this._jsGit.getContent(data);
     }
-    public saveFileContent(data) {
+    public saveFileContent(data): Observable<any> {
         return this._jsGit.saveToGitRepo(data);
     }
 

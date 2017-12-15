@@ -48,11 +48,11 @@ export class JSGitService {
         });
     }
 
-    public getContent(id: string) {
-
+    public getContent(id: Object) : Observable<string> {
         return Observable.create((observer) => {
-            this.repo[this.files[id].repoUrl]["getContentByHash"](this.files[id].hash, (content) => {
+            this.repo[this.files[id["path"]].repoUrl]["getContentByHash"](this.files[id["path"]].hash, (content) => {
                 observer.next(content);
+                observer.complete();
             });
         });
     }
@@ -155,12 +155,13 @@ export class JSGitService {
         }
         return results;
     }
+
     public saveToGitRepo(data) {
         const self = this;
 
         return Observable.create((observer) => {
             const dataForCommit = [];
-            let fileToCommit = Object.assign({}, this.files[data.path]);
+            let fileToCommit = Object.assign({}, self.files[data.path]);
             let repoUrl = fileToCommit.repoUrl;
             delete fileToCommit.hash;
             delete fileToCommit.repoUrl;
@@ -168,8 +169,16 @@ export class JSGitService {
             dataForCommit.push(fileToCommit);
             self.repo[repoUrl]["commit"](dataForCommit, "commit message", (feedback) => {
                 self.repo[repoUrl]["push"]((feedback) => {
+                    console.log(feedback);
+                    observer.next(feedback);
+                    observer.complete();
                 });
-                observer.next(true);
+                self.repo[repoUrl]["resolveRepo"]((repodata) => {
+                    let objectKey = data.path;
+                    var repopath = self.files[objectKey].path;
+                    self.repository[repoUrl] = repodata;
+                    self.files[objectKey].hash = repodata[repopath].hash;
+                });
             });
         });
     }
