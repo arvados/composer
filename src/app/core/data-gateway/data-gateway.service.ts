@@ -7,6 +7,7 @@ import {PlatformRepositoryService} from "../../repository/platform-repository.se
 import {LocalRepositoryService} from "../../repository/local-repository.service";
 import {IpcService} from "../../services/ipc.service";
 import {AppHelper} from "../helpers/AppHelper";
+import {environment} from './../../../environments/environment';
 
 @Injectable()
 export class DataGatewayService {
@@ -19,6 +20,9 @@ export class DataGatewayService {
      * @returns {"local" | "app"}
      */
     static getFileSource(id): "local" | "app" {
+        if (environment.browser) {
+            return 'local';
+        }
 
         return AppHelper.isLocal(id) ? "local" : "app";
     }

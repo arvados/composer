@@ -1,4 +1,5 @@
-import {NgModule} from "@angular/core";
+import {IpcWebService} from './services/ipc.web.service';
+import {NgModule, APP_INITIALIZER} from "@angular/core";
 import {FormBuilder, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {HttpModule} from "@angular/http";
 import {BrowserModule} from "@angular/platform-browser";
@@ -26,6 +27,17 @@ import {UIModule} from "./ui/ui.module";
 import {WorkflowEditorModule} from "./workflow-editor/workflow-editor.module";
 import {OpenExternalFileService} from "./core/open-external-file/open-external-file.service";
 
+import {ConfigurationService} from "./app.config";
+import {LoginService} from "./services/login/login.service";
+import {LoginComponent} from "./login/login.component";
+import {environment} from './../environments/environment';
+import {CookieModule} from 'ngx-cookie';
+import {JSGitService} from "./services/js-git/js-git.service";
+
+export function initConfiguration(_configurationService: ConfigurationService) {
+    if (!environment.browser || !environment.configPath) { return; }
+    return () => _configurationService.load(environment.configPath);
+}
 
 @NgModule({
     providers: [
@@ -39,6 +51,8 @@ import {OpenExternalFileService} from "./core/open-external-file/open-external-f
         FileRepositoryService,
         FormBuilder,
         GlobalService,
+        LoginService,
+        IpcWebService,
         IpcService,
         JavascriptEvalService,
         LocalRepositoryService,
@@ -47,10 +61,23 @@ import {OpenExternalFileService} from "./core/open-external-file/open-external-f
         PlatformConnectionService,
         PlatformRepositoryService,
         SettingsService,
-        StatusBarService
+        StatusBarService,
+        ConfigurationService,
+        {
+            'provide': APP_INITIALIZER,
+            'useFactory': initConfiguration,
+            'deps': [ConfigurationService],
+            'multi': true
+        },
+        JSGitService
     ],
     declarations: [
         MainComponent,
+        LoginComponent,
+    ],
+    entryComponents: [
+        MainComponent,
+        LoginComponent,
     ],
     imports: [
         BrowserModule,
@@ -64,9 +91,29 @@ import {OpenExternalFileService} from "./core/open-external-file/open-external-f
         ToolEditorModule,
         WorkflowEditorModule,
         NativeModule,
+        CookieModule.forRoot(),
     ],
-    bootstrap: [MainComponent]
 })
 export class AppModule {
+
+    constructor(private _loginService: LoginService) {}
+
+    ngDoBootstrap(app) {
+
+        let rootComponent = "ct-cottontail";
+        let InitComponent:any = MainComponent;
+
+        if (environment.browser) {
+            this._loginService.storeToken("api_token");
+            if (!this._loginService.getToken("api_token")) {
+                rootComponent = "login";
+                InitComponent = LoginComponent;
+            }
+        }
+
+        document.body.appendChild(document.createElement(rootComponent));
+        app.bootstrap(InitComponent);
+
+    }
 
 }
