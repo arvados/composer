@@ -1,11 +1,8 @@
 import { ReflectiveInjector } from '@angular/core';
-import { Http, Headers, Response, BrowserXhr, RequestOptions, BaseRequestOptions, ResponseOptions, BaseResponseOptions, ConnectionBackend, XHRBackend, XSRFStrategy, CookieXSRFStrategy } from '@angular/http';
 import { Injectable, Injector } from '@angular/core';
 import { ToolHintsComponent } from './../tool-editor/sections/hints/tool-hints.component';
 import { Observable } from 'rxjs/Observable';
 import { EventEmitter } from '@angular/core';
-import { LoginService } from './login/login.service';
-import { JSGitService } from './js-git/js-git.service';
 import { ConfigurationService } from "../app.config";
 import * as YAML from "js-yaml";
 
@@ -14,23 +11,10 @@ export class IpcWebService {
 
     private _event: EventEmitter<any>;
     private _cntr: IpcWebControler;
-    private _http: Http;
-    private _jsGit: JSGitService;
 
-    constructor(private _loginService: LoginService, private parentInjector:Injector) {
-        let injector = ReflectiveInjector.resolveAndCreate([
-            Http,
-            BrowserXhr,
-            { provide: RequestOptions, useClass: BaseRequestOptions },
-            { provide: ResponseOptions, useClass: BaseResponseOptions },
-            { provide: ConnectionBackend, useClass: XHRBackend },
-            { provide: XSRFStrategy, useFactory: () => new CookieXSRFStrategy() },
-        ], parentInjector);
-
-        this._http = injector.get(Http);
-        this._jsGit = injector.get(JSGitService);
+    constructor(private parentInjector:Injector) {
         this._event = new EventEmitter();
-        this._cntr = new IpcWebControler(this._http, this._jsGit);
+        this._cntr = new IpcWebControler();
     }
 
     public on(event: string, f: Function) {
@@ -59,12 +43,8 @@ export class IpcWebService {
 }
 
 export class IpcWebControler {
-    private _http: Http;
-    private _jsGit: JSGitService;
 
-    constructor(http: Http, jsGit: JSGitService) {
-        this._http = http;
-        this._jsGit = jsGit;
+    constructor() {
     }
 
     public checkForPlatformUpdates(): Observable<any> {
@@ -72,7 +52,7 @@ export class IpcWebControler {
     }
 
     public readDirectory(data: any): Observable<any> {
-        return this._jsGit.init(data);
+        return Observable.empty(null);
     }
 
     public patchLocalRepository(data: any): Observable<any> {
@@ -85,10 +65,10 @@ export class IpcWebControler {
 
     // data == file path
     public getLocalFileContent(data: any): Observable<any> {
-        return this._jsGit.getContent(data);
+        return Observable.empty(null);
     }
     public saveFileContent(data): Observable<any> {
-        return this._jsGit.saveToGitRepo(data);
+        return Observable.empty(null);
     }
 
     /**
@@ -96,8 +76,7 @@ export class IpcWebControler {
      * @param data Object({content: string, path: string})
      */
     public resolveContent(data: any): Observable<any> {
-        let _data = YAML.safeLoad(data.data, { json: true } as any);
-        return Observable.empty().startWith(_data);
+        return Observable.empty(null);
     }
 
     /**
@@ -119,8 +98,7 @@ export class IpcWebControler {
                 return Observable.empty().startWith([]);
 
             case "localFolders":
-                let apiEndPoint = ConfigurationService.configuration['apiEndPoint'];
-                return Observable.empty().startWith([apiEndPoint+'/arvados/v1/repositories']);
+                return Observable.empty().startWith([]);
 
             case "expandedNodes":
                 return Observable.empty().startWith([]);

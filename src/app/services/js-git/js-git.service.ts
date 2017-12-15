@@ -1,8 +1,8 @@
 
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
-import { LoginService } from "../../services/login/login.service";
 import * as HighLevel from "js-git/mixins/high-level";
+import { CredentialsRegistry } from "../../auth/credentials-registry";
 
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
 
@@ -19,8 +19,10 @@ export class JSGitService {
 
     private is_clonned = false;
 
-    constructor(private _http: Http, private _loginService: LoginService) {
-        this.userToken = this._loginService.getToken("api_token");
+    constructor(private _http: Http) {
+        /*_credReg.getActiveCredentials().do((tok) => {
+            this.userToken = tok;
+        });*/
         this.headers = new Headers({ "Authorization": "OAuth2 " + this.userToken });
         this.httpOptions = new RequestOptions({ headers: this.headers });
     }

@@ -6,7 +6,7 @@ import {AppHelper} from "../core/helpers/AppHelper";
 import {LocalRepositoryService} from "../repository/local-repository.service";
 import {PlatformRepositoryService} from "../repository/platform-repository.service";
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
-import { LoginService } from "../services/login/login.service";
+import { AuthService } from "../auth/auth.service";
 import { JSGitService } from "../services/js-git/js-git.service";
 import { ConfigurationService } from "../app.config";
 
@@ -21,12 +21,14 @@ export class ArvExecutorService {
     private jsgit;
 
     constructor(private _http: Http,
-                private _loginService: LoginService,
+                private _authService: AuthService,
                 private _jsgit: JSGitService)
     {
-        this.userToken = this._loginService.getToken("api_token");
-        this.headers = new Headers({
-            "Authorization": "OAuth2 " + this.userToken
+        this._authService.getActive().do((tok) => {
+            this.userToken = tok;
+            this.headers = new Headers({
+                "Authorization": "OAuth2 " + this.userToken
+            });
         });
         this.httpOptions = new RequestOptions({ headers: this.headers });
         this.jsgit = _jsgit;

@@ -15,8 +15,10 @@ import {EditorCommonModule} from "./editor-common/editor-common.module";
 import {FileRepositoryService} from "./file-repository/file-repository.service";
 import {StatusBarService} from "./layout/status-bar/status-bar.service";
 import {NativeModule} from "./native/native.module";
+import {WebstubModule} from "./webstub/webstub.module";
 import {LocalRepositoryService} from "./repository/local-repository.service";
 import {PlatformRepositoryService} from "./repository/platform-repository.service";
+import {ArvadosRepositoryService} from "./repository/arvados-repository.service";
 import {DomEventService} from "./services/dom/dom-event.service";
 import {IpcService} from "./services/ipc.service";
 import {JavascriptEvalService} from "./services/javascript-eval/javascript-eval.service";
@@ -28,7 +30,6 @@ import {WorkflowEditorModule} from "./workflow-editor/workflow-editor.module";
 import {OpenExternalFileService} from "./core/open-external-file/open-external-file.service";
 
 import {ConfigurationService} from "./app.config";
-import {LoginService} from "./services/login/login.service";
 import {LoginComponent} from "./login/login.component";
 import {environment} from './../environments/environment';
 import {CookieModule} from 'ngx-cookie';
@@ -43,7 +44,7 @@ export function initConfiguration(_configurationService: ConfigurationService) {
     providers: [
         {
             provide: CREDENTIALS_REGISTRY,
-            useClass: LocalRepositoryService
+            useClass: ArvadosRepositoryService
         },
         AuthService,
         DataGatewayService,
@@ -51,15 +52,23 @@ export function initConfiguration(_configurationService: ConfigurationService) {
         FileRepositoryService,
         FormBuilder,
         GlobalService,
-        LoginService,
         IpcWebService,
         IpcService,
         JavascriptEvalService,
+        ArvadosRepositoryService,
+        /*{
+            provide: LocalRepositoryService,
+            useClass: ArvadosRepositoryService
+        },
+        {
+            provide: PlatformRepositoryService,
+            useClass: ArvadosRepositoryService
+            },*/
         LocalRepositoryService,
+        PlatformRepositoryService,
         OpenExternalFileService,
         ModalService,
         PlatformConnectionService,
-        PlatformRepositoryService,
         SettingsService,
         StatusBarService,
         ConfigurationService,
@@ -90,30 +99,37 @@ export function initConfiguration(_configurationService: ConfigurationService) {
         EditorCommonModule,
         ToolEditorModule,
         WorkflowEditorModule,
-        NativeModule,
+        WebstubModule,
+//        NativeModule,
         CookieModule.forRoot(),
     ],
 })
 export class AppModule {
 
-    constructor(private _loginService: LoginService) {}
+    constructor(private _authService: AuthService) {}
 
     ngDoBootstrap(app) {
+
+        console.log("booting");
 
         let rootComponent = "ct-cottontail";
         let InitComponent:any = MainComponent;
 
         if (environment.browser) {
-            this._loginService.storeToken("api_token");
-            if (!this._loginService.getToken("api_token")) {
-                rootComponent = "login";
-                InitComponent = LoginComponent;
-            }
+            console.log("Starting");
+            this._authService.getActive().subscribe((cred) => {
+                console.log("Checked cred"+cred);
+                if (!cred) {
+                    rootComponent = "login";
+                    InitComponent = LoginComponent;
+                }
+                document.body.appendChild(document.createElement(rootComponent));
+                app.bootstrap(InitComponent);
+            });
+        } else {
+            document.body.appendChild(document.createElement(rootComponent));
+            app.bootstrap(InitComponent);
         }
-
-        document.body.appendChild(document.createElement(rootComponent));
-        app.bootstrap(InitComponent);
-
     }
 
 }

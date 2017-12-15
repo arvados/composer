@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, ViewContainerRef, ViewEncapsulation} from "@angular/core";
 import {AbstractControl, FormControl, FormGroup, Validators} from "@angular/forms";
-import {LoginService} from "../services/login/login.service";
+import {AuthService} from "../auth/auth.service";
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -13,10 +13,10 @@ import {LoginService} from "../services/login/login.service";
 })
 export class LogoutComponent {
 
-    constructor(private _loginService: LoginService) {}
+    constructor(private _authService: AuthService) {}
 
     logout(): void {
-        this._loginService.logout("api_token");
+        this._authService.setActiveCredentials(null);
     }
 
 }
