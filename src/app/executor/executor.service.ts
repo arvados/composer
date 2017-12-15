@@ -55,7 +55,7 @@ export class ExecutorService {
         return this.executorState.asObservable();
     }
 
-    run(appID: string, content: string, options = {}): Observable<string> {
+    run(appID: string, content: string, model: Object, options = {}): Observable<string> {
 
         const isLocal = AppHelper.isLocal(appID);
         const appSource = isLocal ? "local" : "user";

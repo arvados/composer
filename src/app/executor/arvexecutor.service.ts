@@ -48,15 +48,15 @@ export class ArvExecutorService {
         return Observable.of("VALID");
     }
 
-    run(appID: string, content: any, jobPath: string, options = {}): Observable<string> {
+    run(appID: string, content: string, model: Object, options = {}): Observable<string> {
         var fi = this.jsgit.getFileInfo(appID);
         var jsgit = this.jsgit;
         var _http = this._http;
 
         return jsgit.getRepoCommit(fi.repoUrl, 'master').flatMap((commithash) => {
             var input_defaults = {}
-            for (var i in content.inputs) {
-                var input = content.inputs[i];
+            for (var i in model["inputs"]) {
+                var input = model["inputs"][i];
                 if (input["default"] !== undefined) {
                     var shortid;
                     if (input["id"][0] == "#") {
@@ -86,7 +86,7 @@ export class ArvExecutorService {
                         },
                         "/var/lib/cwl/workflow.json": {
                             "kind": "json",
-                            "content": content
+                            "content": model
                         },
                         "stdout": {
                             "kind": "file",

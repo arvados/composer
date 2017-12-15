@@ -844,7 +844,7 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
 
             const runner = this.getExecutionContext().switchMap(context => {
                 return this.executor
-                    .run(this.tabData.id, modelObject, modelText, context.executionParams)
+                    .run(this.tabData.id, modelText, modelObject, context.executionParams)
                     .finally(() => obs.complete());
             }).subscribe(obs);
 

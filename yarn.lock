@@ -784,6 +784,10 @@ bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.1.1, bn.js@^4.4.0:
   version "4.11.8"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.11.8.tgz#2cde09eb5ee341f484746bb0309b3253b1b1442f"
 
+bodec@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/bodec/-/bodec-0.1.0.tgz#bc851555430f23c9f7650a75ef64c6a94c3418cc"
+
 body-parser@1.18.2, body-parser@^1.16.1:
   version "1.18.2"
   resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.18.2.tgz#87678a19d84b47d859b83199bd59bce222b10454"
@@ -1731,6 +1735,10 @@ csso@~2.3.1:
 csv-parse@^1.1.7:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-1.3.3.tgz#d1cfd8743c2f849a0abb2fd544db56695d19a490"
+
+culvert@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/culvert/-/culvert-0.1.2.tgz#9502f5f0154a2d5a22a023e79f71cc936fa6ef6f"
 
 currently-unhandled@^0.4.1:
   version "0.4.1"
@@ -2853,6 +2861,10 @@ gaze@^1.0.0, gaze@~1.1.2:
   dependencies:
     globule "^1.0.0"
 
+gen-run@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/gen-run/-/gen-run-0.1.2.tgz#fb5b574094984f87521aaf1acf1f2ada46d421c3"
+
 get-caller-file@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-1.0.2.tgz#f702e63127e7e231c160a80c1554acb70d5047e5"
@@ -2881,6 +2893,10 @@ git-changelog@^1.1.2:
     fs-extra "^0.18.4"
     lodash "^3.7.0"
     q "^1.2.0"
+
+git-sha1@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/git-sha1/-/git-sha1-0.1.2.tgz#599ac192b71875825e13a445f3a6e05118c2f745"
 
 github-from-package@0.0.0:
   version "0.0.0"
@@ -3722,6 +3738,15 @@ js-base64@^2.1.5, js-base64@^2.1.8, js-base64@^2.1.9:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-2.3.2.tgz#a79a923666372b580f8e27f51845c6f7e8fbfbaf"
 
+"js-git@git://github.com/curoverse/js-git.git":
+  version "0.7.8"
+  resolved "git://github.com/curoverse/js-git.git#f7a656327b6bbbeff0965c496ab2c83c816408bb"
+  dependencies:
+    bodec "^0.1.0"
+    culvert "^0.1.2"
+    git-sha1 "^0.1.2"
+    pako "^0.2.5"
+
 js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
@@ -4468,6 +4493,10 @@ negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
 
+ngx-cookie@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/ngx-cookie/-/ngx-cookie-1.0.1.tgz#87d9fa023fdab2c476d99f8a131d1b8a169c005e"
+
 ngx-pipes@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/ngx-pipes/-/ngx-pipes-2.0.1.tgz#ed5b9b88ff049a1ada532fb71982fd7e9e61be28"
@@ -4829,7 +4858,7 @@ package-json@^4.0.0:
     registry-url "^3.0.3"
     semver "^5.1.0"
 
-pako@~0.2.0:
+pako@^0.2.5, pako@~0.2.0:
   version "0.2.9"
   resolved "https://registry.yarnpkg.com/pako/-/pako-0.2.9.tgz#f3f7522f4ef782348da8161bad9ecfd51bf83a75"
 
@@ -7151,6 +7180,33 @@ webpack-subresource-integrity@^1.0.1:
   resolved "https://registry.yarnpkg.com/webpack-subresource-integrity/-/webpack-subresource-integrity-1.0.1.tgz#1fc09d46497da66e46743a2a51d2cc385b9cb0ed"
   dependencies:
     webpack-core "^0.6.8"
+
+webpack@^3.8.1:
+  version "3.10.0"
+  resolved "https://registry.yarnpkg.com/webpack/-/webpack-3.10.0.tgz#5291b875078cf2abf42bdd23afe3f8f96c17d725"
+  dependencies:
+    acorn "^5.0.0"
+    acorn-dynamic-import "^2.0.0"
+    ajv "^5.1.5"
+    ajv-keywords "^2.0.0"
+    async "^2.1.2"
+    enhanced-resolve "^3.4.0"
+    escope "^3.6.0"
+    interpret "^1.0.0"
+    json-loader "^0.5.4"
+    json5 "^0.5.1"
+    loader-runner "^2.3.0"
+    loader-utils "^1.1.0"
+    memory-fs "~0.4.1"
+    mkdirp "~0.5.0"
+    node-libs-browser "^2.0.0"
+    source-map "^0.5.3"
+    supports-color "^4.2.1"
+    tapable "^0.2.7"
+    uglifyjs-webpack-plugin "^0.4.6"
+    watchpack "^1.4.0"
+    webpack-sources "^1.0.1"
+    yargs "^8.0.2"
 
 webpack@~3.8.1:
   version "3.8.1"

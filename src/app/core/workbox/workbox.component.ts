@@ -11,7 +11,6 @@ import {ModalService} from "../../ui/modal/modal.service";
 import {DirectiveBase} from "../../util/directive-base/directive-base";
 import {ClosingDirtyAppsModalComponent} from "../modals/closing-dirty-apps/closing-dirty-apps-modal.component";
 import {WorkboxService} from "./workbox.service";
-import {ReplaySubject} from "rxjs/ReplaySubject";
 import {LogoutComponent} from "../../logout/logout.component";
 import {environment} from '../../../environments/environment';
 
