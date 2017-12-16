@@ -1,15 +1,17 @@
-import {Component, OnInit, ViewEncapsulation} from "@angular/core";
+import {Component, OnInit, ViewEncapsulation, Input} from "@angular/core";
+import {Observable} from "rxjs/Observable";
+import {ReplaySubject} from "rxjs/ReplaySubject";
 import {ConfigurationService} from "../app.config";
 import {environment} from './../../environments/environment';
 
 @Component({
     encapsulation: ViewEncapsulation.None,
-    
+
     selector: "login",
     template: `
         <div class="web-login">
             <div class="m-2">
-                <a class="btn btn-primary btn-block" href="{{apiEndPoint}}">Click here to log in</a>
+                <a class="btn btn-primary btn-block" href="{{apiEndPoint}}">Click here to log in to {{apiEndPoint}}</a>
             </div>
         </div>
     `,
@@ -20,17 +22,18 @@ import {environment} from './../../environments/environment';
 })
 export class LoginComponent implements OnInit {
 
-    public apiEndPoint;
+    @Input()
+    apiEndPoint: string;
+
+    constructor(private _config: ConfigurationService) { }
 
     ngOnInit(): any {
-        const returnTo = encodeURIComponent(document.location.href.replace(/\?.*/, ''));
-        try {
-            let apiEndPoint = ConfigurationService.configuration['apiEndPoint'];
+        this._config.configuration.subscribe((conf) => {
+            let apiEndPoint = conf['apiEndPoint'];
             apiEndPoint = apiEndPoint.lastIndexOf('/') === apiEndPoint.length ? apiEndPoint.slice(0, -1) : apiEndPoint;
+            const returnTo = encodeURIComponent(document.location.href.replace(/\?.*/, ''));
             this.apiEndPoint = apiEndPoint + '/login?return_to=' + returnTo;
-        } catch (error) {
-            console.log('Something went wrong. Please try in few minutes.');
-        }
+        });
     }
 
 }

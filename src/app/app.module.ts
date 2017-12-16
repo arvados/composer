@@ -35,13 +35,9 @@ import {environment} from './../environments/environment';
 import {CookieModule} from 'ngx-cookie';
 import {JSGitService} from "./services/js-git/js-git.service";
 
-export function initConfiguration(_configurationService: ConfigurationService) {
-    if (!environment.browser || !environment.configPath) { return; }
-    return () => _configurationService.load(environment.configPath);
-}
-
 @NgModule({
     providers: [
+        ConfigurationService,
         {
             provide: CREDENTIALS_REGISTRY,
             useClass: ArvadosRepositoryService
@@ -56,28 +52,21 @@ export function initConfiguration(_configurationService: ConfigurationService) {
         IpcService,
         JavascriptEvalService,
         ArvadosRepositoryService,
-        /*{
+        {
             provide: LocalRepositoryService,
             useClass: ArvadosRepositoryService
         },
         {
             provide: PlatformRepositoryService,
             useClass: ArvadosRepositoryService
-            },*/
-        LocalRepositoryService,
-        PlatformRepositoryService,
+        },
+        //LocalRepositoryService,
+        //PlatformRepositoryService,
         OpenExternalFileService,
         ModalService,
         PlatformConnectionService,
         SettingsService,
         StatusBarService,
-        ConfigurationService,
-        {
-            'provide': APP_INITIALIZER,
-            'useFactory': initConfiguration,
-            'deps': [ConfigurationService],
-            'multi': true
-        },
         JSGitService
     ],
     declarations: [

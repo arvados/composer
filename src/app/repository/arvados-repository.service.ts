@@ -16,6 +16,7 @@ import {AuthCredentials} from "../auth/model/auth-credentials";
 import {CookieService} from 'ngx-cookie';
 import { Http, Headers, Response, BrowserXhr, RequestOptions, BaseRequestOptions, ResponseOptions, BaseResponseOptions, ConnectionBackend, XHRBackend, XSRFStrategy, CookieXSRFStrategy } from '@angular/http';
 import { JSGitService } from '../services/js-git/js-git.service';
+import { ConfigurationService } from '../app.config'
 
 @Injectable()
 export class ArvadosRepositoryService {
@@ -32,9 +33,13 @@ export class ArvadosRepositoryService {
     private credentials: ReplaySubject<AuthCredentials[]>             = new ReplaySubject(1);
     private activeCredentials: ReplaySubject<AuthCredentials>         = new ReplaySubject(1);
 
+    private selectedAppsPanel: ReplaySubject<"myApps" | "publicApps"> = new ReplaySubject(1);
+    private publicAppsGrouping: ReplaySubject<"toolkit" | "category"> = new ReplaySubject(1);
+
     constructor(private ipc: IpcService,
                 private _http: Http,
                 private _cookieService: CookieService,
+                private _config: ConfigurationService,
                 private parentInjector:Injector) {
 
         let injector = ReflectiveInjector.resolveAndCreate([
@@ -55,11 +60,14 @@ export class ArvadosRepositoryService {
         this.listen("expandedNodes").subscribe(this.expandedNodes);
         this.listen("appMeta").subscribe(this.appMeta);
 
-        console.log("checking token");
-        if (this.getToken("api_token") || this.storeToken("api_token")) {
-            this.setActiveCredentials(new AuthCredentials("blah", this.getToken("api_token"), {
-                username: ""
-            }));
+        console.log("checking token "+this.getToken("api_token"));
+        if (this.storeToken("api_token") || this.getToken("api_token")) {
+            console.log("using token "+ this.getToken("api_token"));
+            _config.configuration.subscribe((conf) => {
+                this.setActiveCredentials(new AuthCredentials(conf['apiEndPoint']+"/0123456789abcd", this.getToken("api_token"), {
+                    username: "username"
+                }));
+            });
         } else {
             this.setActiveCredentials(null);
         }
@@ -389,5 +397,30 @@ export class ArvadosRepositoryService {
             key,
             value
         }).toPromise();
+    }
+
+    //Local stubs
+    getLocalFolders(): Observable<string[]> {
+        return Observable.of([]);
+    }
+
+    getExpandedFolders(): Observable<string[]> {
+        return Observable.of([]);
+    }
+
+    getSelectedAppsPanel(): Observable<"myApps" | "publicApps"> {
+        return this.selectedAppsPanel;
+    }
+
+    setSelectedAppsPanel(selectedAppsPanel: "myApps" | "publicApps"): Promise<any> {
+        return this.patch({selectedAppsPanel}).toPromise();
+    }
+
+    getPublicAppsGrouping(): Observable<"toolkit" | "category"> {
+        return this.publicAppsGrouping;
+    }
+
+    setPublicAppsGrouping(publicAppsGrouping: "toolkit" | "category" | "none"): Promise<any> {
+        return this.patch({publicAppsGrouping}).toPromise();
     }
 }

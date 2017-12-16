@@ -1,20 +1,22 @@
 import {Injectable} from '@angular/core';
 import {Http} from '@angular/http';
 import {Observable} from "rxjs/Observable";
+import {ReplaySubject} from "rxjs/ReplaySubject";
+import {environment} from '../environments/environment';
 import * as yaml from 'js-yaml';
 
 @Injectable()
 export class ConfigurationService {
 
-    public static configuration: Object
-    public static discoveryDoc: Object
+    public configuration : ReplaySubject<Object> = new ReplaySubject(1);
+    public discoveryDoc: ReplaySubject<Object> = new ReplaySubject(1);
 
-    constructor(private http: Http) { }
+    constructor(private http: Http) {
+        if (!environment.browser || !environment.configPath) { return; }
 
-    load(configurationPath: string): Promise<Object> {
         var http = this.http;
 
-        var obs = http.get(configurationPath).map(res => {
+        var obs = http.get(environment.configPath).map(res => {
             return yaml.safeLoad(res['_body']);
         });
 
@@ -23,12 +25,11 @@ export class ConfigurationService {
             return Observable.of("Error");
         });
 
-        return obs.flatMap(configuration => {
-            ConfigurationService.configuration = configuration;
+        obs.flatMap(configuration => {
+            this.configuration.next(configuration);
             return http.get(configuration['apiEndPoint']+"/discovery/v1/apis/arvados/v1/rest");
-        }).map(res => {
-            ConfigurationService.discoveryDoc = res.json();
-            return ConfigurationService.configuration;
-        }).toPromise();
+        }).subscribe(res => {
+            this.discoveryDoc.next(res.json());
+        });
     }
 }

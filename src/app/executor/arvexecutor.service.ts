@@ -22,7 +22,8 @@ export class ArvExecutorService {
 
     constructor(private _http: Http,
                 private _authService: AuthService,
-                private _jsgit: JSGitService)
+                private _jsgit: JSGitService,
+                private _config: ConfigurationService)
     {
         this._authService.getActive().do((tok) => {
             this.userToken = tok;
@@ -113,13 +114,17 @@ export class ArvExecutorService {
                 }
             };
 
-            let apiEndPoint = ConfigurationService.configuration['apiEndPoint'];
-            return _http.post(apiEndPoint+'/arvados/v1/container_requests',
-                              body, this.httpOptions);
-        }).map(response => {
-            var url = ConfigurationService.discoveryDoc["workbenchUrl"] + "/container_requests/" + response.json().uuid;
-            window.open(url, "_blank");
-            return url;
+            this._config.configuration.flatMap((conf) => {
+                let apiEndPoint = ['apiEndPoint'];
+                return _http.post(apiEndPoint+'/arvados/v1/container_requests',
+                                  body, this.httpOptions);
+            });
+        }).flatMap(response => {
+            return this._config.discoveryDoc.map((conf) => {
+                var url = conf["workbenchUrl"] + "/container_requests/" + response.json().uuid;
+                window.open(url, "_blank");
+                return url;
+            });
         });
     }
 

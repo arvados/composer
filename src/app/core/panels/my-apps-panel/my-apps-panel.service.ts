@@ -73,6 +73,9 @@ export class MyAppsPanelService extends AppsPanelService {
             }
             const platformHash = credentials.getHash();
 
+            console.log(credentials.url);
+            console.log(AuthCredentials.getPlatformLabel(credentials.url));
+
             return {
                 id: platformHash,
                 data: credentials,
@@ -120,10 +123,10 @@ export class MyAppsPanelService extends AppsPanelService {
 
     private createDirectoryListingTreeNodes(listing: FilesystemEntry[]) {
         return listing.map(fsEntry => {
-            
+
 
             const id    = fsEntry.path;
-            
+
             const label = (typeof fsEntry.name === "string") ? fsEntry.name :  AppHelper.getBasename(fsEntry.path);
 
             let icon           = "fa-folder";
@@ -145,7 +148,7 @@ export class MyAppsPanelService extends AppsPanelService {
                     .concat(this.ipc.request("readDirectory", pathData))
                     .map(list => this.createDirectoryListingTreeNodes(list));
             }
-      
+
             return MyAppsPanelService.makeTreeNode({
                 id,
                 icon,
