@@ -20,11 +20,16 @@ import {CreateLocalFolderModalComponent} from "../../modals/create-local-folder-
 import {WorkboxService} from "../../workbox/workbox.service";
 import {NavSearchResultComponent} from "../nav-search-result/nav-search-result.component";
 import {MyAppsPanelService} from "./my-apps-panel.service";
+import {ArvadosAppsPanelService} from "./arvados-apps-panel.service";
 import {LocalRepositoryService} from "../../../repository/local-repository.service";
 
 @Component({
     selector: "ct-my-apps-panel",
-    providers: [MyAppsPanelService],
+    providers: [
+     {
+            provide: MyAppsPanelService,
+            useClass: ArvadosAppsPanelService
+     }],
     templateUrl: "./my-apps-panel.component.html",
     styleUrls: ["./my-apps-panel.component.scss"]
 })
@@ -67,6 +72,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
         this.attachExpansionStateSaving();
         this.listenForAppOpening();
         this.listenForContextMenu();
+        this.listenForGitRepoExpand();
 
         this.service.rootFolders.subscribe(folders => {
             this.rootFolders = folders;
@@ -241,6 +247,13 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
             });
 
             this.workbox.openTab(tab);
+        });
+    }
+
+    private listenForGitRepoExpand() {
+        const gitRepoExpand  = this.tree.expansionChanges.filter(n => n.type === "gitrepo");
+        gitRepoExpand.subscribe(node => {
+            node.data.start_load();
         });
     }
 

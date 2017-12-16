@@ -2,9 +2,9 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import * as HighLevel from "js-git/mixins/high-level";
-import { CredentialsRegistry } from "../../auth/credentials-registry";
 
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
+import {AuthService} from "../../auth/auth.service"
 
 @Injectable()
 export class JSGitService {
@@ -17,14 +17,10 @@ export class JSGitService {
     private repo_uuid = {};
     private files = {};
 
-    private is_clonned = false;
-
-    constructor(private _http: Http) {
-        /*_credReg.getActiveCredentials().do((tok) => {
-            this.userToken = tok;
-        });*/
-        this.headers = new Headers({ "Authorization": "OAuth2 " + this.userToken });
-        this.httpOptions = new RequestOptions({ headers: this.headers });
+    constructor(private auth: AuthService, private _http: Http) {
+        this.auth.getActive().subscribe((active) => {
+            this.userToken = active.token;
+        });
     }
 
     private createRepo(repoUrl: string): Observable<any> {
@@ -41,10 +37,9 @@ export class JSGitService {
                     observer.next([]);
                 }
 
-                this.repo[repoUrl]["resolveRepo"]((data) => {
-                    this.repository[repoUrl] = data;
-                    const level = data["/"];
-                    observer.next(this.formatFolder(level, "/", repoUrl));
+                this.repo[repoUrl]["resolveRepo"]((res) => {
+                    this.repository[repoUrl] = res;
+                    observer.next(res);
                 });
             });
         });
@@ -59,41 +54,11 @@ export class JSGitService {
         });
     }
 
-    public init(data): Observable<any> {
-
-        if (/repositories$/.test(data)) {
-            return this._http.get(data, this.httpOptions).map(response => {
-                const userRepositories = response.json();
-                const parsedRepositories = [];
-                userRepositories.items.forEach(element => {
-                    if (element.hasOwnProperty("clone_urls") && element.clone_urls[1] !== "https://git.4xphq.arvadosapi.com/arvados.git" && element.name != "arvados") {
-                        this.repo_uuid[element.clone_urls[1]] = element.uuid;
-                        parsedRepositories.push({
-                            "dirname": element.name,
-                            "isDir": true,
-                            "isFile": false,
-                            "isReadable": true,
-                            "isWritable": true,
-                            "language": "",
-                            "name": element.name,
-                            "path": element.clone_urls[1],
-                            "type": "",
-                            "repoUrl": element.clone_urls[1]
-                        });
-                    }
-                });
-                return parsedRepositories;
-            });
-        } else if (/.git$/.test(data.path)) {
-            return this.createRepo(data.repoUrl);
+    public getRepo(repoUrl): Observable<any> {
+        if (this.repo[repoUrl]) {
+            return this.repo[repoUrl];
         } else {
-            return Observable.create((observer) => {
-                const folder = this.repository[data.repoUrl][data.path];
-
-                if (folder.mode === 16384) {
-                    observer.next(this.formatFolder(folder, data.path, data.repoUrl));
-                }
-            });
+            return this.createRepo(repoUrl);
         }
     }
 

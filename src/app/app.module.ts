@@ -51,6 +51,7 @@ import {JSGitService} from "./services/js-git/js-git.service";
         IpcWebService,
         IpcService,
         JavascriptEvalService,
+
         ArvadosRepositoryService,
         {
             provide: LocalRepositoryService,
@@ -60,8 +61,9 @@ import {JSGitService} from "./services/js-git/js-git.service";
             provide: PlatformRepositoryService,
             useClass: ArvadosRepositoryService
         },
-        //LocalRepositoryService,
-        //PlatformRepositoryService,
+
+        LocalRepositoryService,
+        PlatformRepositoryService,
         OpenExternalFileService,
         ModalService,
         PlatformConnectionService,

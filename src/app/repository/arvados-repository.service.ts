@@ -36,6 +36,8 @@ export class ArvadosRepositoryService {
     private selectedAppsPanel: ReplaySubject<"myApps" | "publicApps"> = new ReplaySubject(1);
     private publicAppsGrouping: ReplaySubject<"toolkit" | "category"> = new ReplaySubject(1);
 
+    private httpOptions: RequestOptions;
+
     constructor(private ipc: IpcService,
                 private _http: Http,
                 private _cookieService: CookieService,
@@ -64,9 +66,12 @@ export class ArvadosRepositoryService {
         if (this.storeToken("api_token") || this.getToken("api_token")) {
             console.log("using token "+ this.getToken("api_token"));
             _config.configuration.subscribe((conf) => {
-                this.setActiveCredentials(new AuthCredentials(conf['apiEndPoint']+"/0123456789abcd", this.getToken("api_token"), {
+                const token = this.getToken("api_token");
+                this.setActiveCredentials(new AuthCredentials(conf['apiEndPoint']+"/0123456789abcd", token, {
                     username: "username"
                 }));
+                const headers = new Headers({ "Authorization": "OAuth2 " + token });
+                this.httpOptions = new RequestOptions({ "headers": headers });
             });
         } else {
             this.setActiveCredentials(null);
@@ -121,6 +126,15 @@ export class ArvadosRepositoryService {
 
     private getToken(token: string): string {
         return this._cookieService.get(token)
+    }
+
+    getGitRepos(): Observable<Object[]> {
+        return this._config.configuration.flatMap((conf) => {
+            const apiEndPoint = conf['apiEndPoint'];
+            return this._http.get(apiEndPoint+"/arvados/v1/repositories", this.httpOptions).map(response => {
+                return response.json()["items"];
+            });
+        });
     }
 
     getOpenTabs(): Observable<TabData<any>[] | null> {
@@ -194,11 +208,11 @@ export class ArvadosRepositoryService {
     }
 
     private listen(key: string) {
-        return this.ipc.watch("watchUserRepository", {key});
+        return this.ipc.watch("watchLocalRepository", {key});
     }
 
     private patch(data: { [key: string]: any }) {
-        return this.ipc.request("patchUserRepository", data);
+        return this.ipc.request("patchLocalRepository", data);
     }
 
     setNodeExpansion(nodesToExpand: string | string [], isExpanded: boolean): void {

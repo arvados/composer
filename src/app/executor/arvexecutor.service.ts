@@ -115,7 +115,7 @@ export class ArvExecutorService {
             };
 
             this._config.configuration.flatMap((conf) => {
-                let apiEndPoint = ['apiEndPoint'];
+                const apiEndPoint = conf['apiEndPoint'];
                 return _http.post(apiEndPoint+'/arvados/v1/container_requests',
                                   body, this.httpOptions);
             });
