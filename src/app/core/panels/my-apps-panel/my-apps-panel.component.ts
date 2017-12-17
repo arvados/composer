@@ -216,7 +216,6 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
         const fileOpening = this.tree.open.filter(n => n.type === "file");
 
         appOpening.subscribe(node => {
-
             const label = node.data.name;
             const type  = node.data.raw.class === "CommandLineTool" ? "CommandLineTool" : "Workflow";
 

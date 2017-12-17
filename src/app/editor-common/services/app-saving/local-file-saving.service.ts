@@ -10,7 +10,7 @@ export class LocalFileSavingService implements AppSaver {
     }
 
     save(appID: string, content: string) {
-
+        console.log("local fss");
         return this.ipc.request("saveFileContent", {
             path: appID,
             content

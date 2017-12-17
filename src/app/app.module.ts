@@ -13,6 +13,7 @@ import {GlobalService} from "./core/global/global.service";
 import {CWLModule} from "./cwl/cwl.module";
 import {EditorCommonModule} from "./editor-common/editor-common.module";
 import {FileRepositoryService} from "./file-repository/file-repository.service";
+import {ArvadosFileRepositoryService} from "./file-repository/arvados-file.service";
 import {StatusBarService} from "./layout/status-bar/status-bar.service";
 import {NativeModule} from "./native/native.module";
 import {WebstubModule} from "./webstub/webstub.module";
@@ -45,7 +46,6 @@ import {JSGitService} from "./services/js-git/js-git.service";
         AuthService,
         DataGatewayService,
         DomEventService,
-        FileRepositoryService,
         FormBuilder,
         GlobalService,
         IpcWebService,
@@ -53,6 +53,11 @@ import {JSGitService} from "./services/js-git/js-git.service";
         JavascriptEvalService,
 
         ArvadosRepositoryService,
+        ArvadosFileRepositoryService,
+        {
+            provide: FileRepositoryService,
+            useClass: ArvadosFileRepositoryService
+        },
         {
             provide: LocalRepositoryService,
             useClass: ArvadosRepositoryService

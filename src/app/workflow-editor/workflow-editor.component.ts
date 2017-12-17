@@ -12,6 +12,7 @@ import {PlatformAppService} from "../editor-common/components/platform-app-commo
 import {EditorInspectorService} from "../editor-common/inspector/editor-inspector.service";
 import {APP_SAVER_TOKEN} from "../editor-common/services/app-saving/app-saver.interface";
 import {LocalFileSavingService} from "../editor-common/services/app-saving/local-file-saving.service";
+import {ArvadosAppSavingService} from "../editor-common/services/app-saving/arvados-app-saving.service";
 import {PlatformAppSavingService} from "../editor-common/services/app-saving/platform-app-saving.service";
 import {ExecutorService} from "../executor/executor.service";
 import {NotificationBarService} from "../layout/notification-bar/notification-bar.service";
@@ -22,11 +23,21 @@ import {IpcService} from "../services/ipc.service";
 import {ModalService} from "../ui/modal/modal.service";
 import {WorkflowGraphEditorComponent} from "./graph-editor/graph-editor/workflow-graph-editor.component";
 import {WorkflowEditorService} from "./workflow-editor.service";
+import {environment} from './../../environments/environment';
+import {JSGitService} from './../services/js-git/js-git.service';
 
-export function appSaverFactory(comp: WorkflowEditorComponent, ipc: IpcService, modal: ModalService, platformRepository: PlatformRepositoryService) {
+export function appSaverFactory(comp: WorkflowEditorComponent,
+                                ipc: IpcService,
+                                modal: ModalService,
+                                platformRepository: PlatformRepositoryService,
+                                jsgit: JSGitService) {
 
     if (comp.tabData.dataSource === "local") {
-        return new LocalFileSavingService(ipc);
+        if (environment.browser) {
+            return new ArvadosAppSavingService(jsgit);
+        } else {
+            return new LocalFileSavingService(ipc);
+        }
     }
 
     return new PlatformAppSavingService(platformRepository, modal);
@@ -38,7 +49,7 @@ export function appSaverFactory(comp: WorkflowEditorComponent, ipc: IpcService, 
         {
             provide: APP_SAVER_TOKEN,
             useFactory: appSaverFactory,
-            deps: [WorkflowEditorComponent, IpcService, ModalService, PlatformRepositoryService]
+            deps: [WorkflowEditorComponent, IpcService, ModalService, PlatformRepositoryService, JSGitService]
         }, {
             provide: APP_META_MANAGER,
             useFactory: appMetaManagerFactory,

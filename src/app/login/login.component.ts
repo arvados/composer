@@ -11,7 +11,7 @@ import {environment} from './../../environments/environment';
     template: `
         <div class="web-login">
             <div class="m-2">
-                <a class="btn btn-primary btn-block" href="{{apiEndPoint}}">Click here to log in to {{apiEndPoint}}</a>
+                <a class="btn btn-primary btn-block" href="{{apiEndPoint}}">Click here to log in</a>
             </div>
         </div>
     `,

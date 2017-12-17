@@ -38,6 +38,8 @@ export class ArvadosRepositoryService {
 
     private httpOptions: RequestOptions;
 
+    private repo_uuid = {};
+
     constructor(private ipc: IpcService,
                 private _http: Http,
                 private _cookieService: CookieService,
@@ -132,9 +134,17 @@ export class ArvadosRepositoryService {
         return this._config.configuration.flatMap((conf) => {
             const apiEndPoint = conf['apiEndPoint'];
             return this._http.get(apiEndPoint+"/arvados/v1/repositories", this.httpOptions).map(response => {
-                return response.json()["items"];
+                return response.json()["items"].map(i => {
+                    this.repo_uuid[i["clone_urls"][1]] = i["uuid"];
+                    return {name: i["name"],
+                            url: i["clone_urls"][1]}
+                });
             });
         });
+    }
+
+    getRepoUuid(repoUrl: string): string {
+        return this.repo_uuid[repoUrl];
     }
 
     getOpenTabs(): Observable<TabData<any>[] | null> {

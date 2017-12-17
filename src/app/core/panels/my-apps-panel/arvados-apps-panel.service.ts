@@ -20,6 +20,8 @@ import {AppHelper} from "../../helpers/AppHelper";
 import {getDragImageClass, getDragTransferDataType} from "../../../ui/tree-view/tree-view-utils";
 import {JSGitService} from "../../../services/js-git/js-git.service";
 
+const yaml   = require("js-yaml");
+
 @Injectable()
 export class ArvadosAppsPanelService extends AppsPanelService {
 
@@ -58,11 +60,13 @@ export class ArvadosAppsPanelService extends AppsPanelService {
      * Gives an observable of root tree nodes.
      */
     getRootFolders(): Observable<TreeNode<any>[]> {
+        const self = this;
         return this.arvRepository.getGitRepos()
             .map(items => {
                 return items.map(item => {
-                    var children_sub = new ReplaySubject(1);
-                    item["start_load"] = () => {
+                    const children_sub: ReplaySubject<TreeNode<any>[]> = new ReplaySubject(1);
+
+                    item["start_load"] = function() {
                         children_sub.next([{
                             id: "loading",
                             data: null,
@@ -70,37 +74,83 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                             label: "loading...",
                             isExpandable: false,
                             isExpanded: Observable.of(false),
-                            icon: ""
+                            icon: "",
                             iconExpanded: "",
                             children: Observable.empty()
                         }]);
 
-                        const repoUrl = item["clone_urls"][1];
-                        this._jsgit.getRepo(repoUrl).subscribe((r) => {
-                            var ch = [];
-                            for (const f in r) {
-                                const ent = r[f];
-                                ch.push({
-                                    id: repoUrl+"#"+ent.path,
-                                    data: {},
-                                    type: "app",
-                                    label: ent.path,
-                                    isExpandable: false,
-                                    isExpanded: Observable.of(false),
-                                    icon: ""
-                                    iconExpanded: "",
-                                    children: Observable.empty()
-                                });
+                        const repoUrl = item["url"];
+                        self._jsgit.getRepoContents(repoUrl).subscribe((dirents) => {
+
+                            function load_dir(dirname: string): Observable<TreeNode<any>[]> {
+                                const pending = [];
+                                for (const filename in dirents[dirname].body) {
+                                    const ent = dirents[dirname].body[filename];
+                                    const key = repoUrl+"#"+dirname+filename;
+                                    if (ent.mode === 16384) {
+                                        // directory
+                                        pending.push(Observable.of({
+                                            id: key,
+                                            data: {},
+                                            type: "",
+                                            label: filename,
+                                            isExpandable: true,
+                                            isExpanded: self.expandedNodes.map(list => list.indexOf(key) !== -1),
+                                            icon: "fa-folder",
+                                            iconExpanded: "fa-folder-open",
+                                            children: load_dir(dirname+filename+"/")
+                                        }));
+                                    } else {
+                                        // file
+                                        pending.push(self._jsgit.getFileContent(key).map((content) => {
+                                            const parsed = yaml.safeLoad(content);
+                                            const cwltype = parsed ? parsed["class"] : "";
+
+                                            let icon;
+                                            if (cwltype === "Workflow") {
+                                                icon = "fa-share-alt";
+                                            } else if (cwltype === "CommandLineTool") {
+                                                icon = "fa-terminal";
+                                            } else {
+                                                icon = "fa-file";
+                                            }
+
+                                            return {
+                                                id: key,
+                                                data: {
+                                                    id: key,
+                                                    name: filename,
+                                                    raw: parsed,
+                                                    isWritable: true,
+                                                    type: cwltype
+                                                },
+                                                type: "file",
+                                                label: filename,
+                                                isExpandable: false,
+                                                isExpanded: Observable.of(false),
+                                                icon,
+                                                iconExpanded: "",
+                                                children: Observable.empty()
+                                            };
+                                        }).take(1));
+                                    }
+                                }
+                                return Observable.forkJoin(...pending);
                             }
-                            children_sub.next(ch);
+
+                            load_dir("/").subscribe((newchildren) => {
+                                children_sub.next(newchildren);
+                            });
                         });
                     };
+
                     var app = ArvadosAppsPanelService.makeTreeNode({
-                        id: item["uuid"],
+                        id: item["url"],
                         data: item,
                         type: "gitrepo",
                         label: item["name"],
-                        isExpanded: this.expandedNodes.map(list => list.indexOf(item["uuid"]) !== -1),
+                        isExpandable: true,
+                        isExpanded: self.expandedNodes.map(list => list.indexOf(item["url"]) !== -1),
                         children: children_sub
                     });
 
