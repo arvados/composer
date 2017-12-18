@@ -58,7 +58,7 @@ export class ArvExecutorService {
                         shortid = input["id"].substr(1);
                     } else {
                         let shortsplit = input["id"].split("/");
-                        shortid = shortsplit[sp.length-1];
+                        shortid = shortsplit[shortsplit.length-1];
                     }
                     input_defaults[shortid] = input["default"]
                 }
@@ -116,7 +116,6 @@ export class ArvExecutorService {
                 });
             });
         }).flatMap(response => {
-            console.log("resp 1");
             return self._config.discoveryDoc.take(1).map((conf) => {
                 var url = conf["workbenchUrl"] + "/container_requests/" + response.json().uuid;
                 console.log("opening tab "+url);

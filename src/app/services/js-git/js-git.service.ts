@@ -42,14 +42,14 @@ export class JSGitService {
         return repoObj["contents"];
     }
 
-    static splitFileKey(fileKey: string): Object {
+    static splitFileKey(fileKey: string): {repoUrl: string, path: string} {
         const sp = fileKey.split("#", 2);
         return {repoUrl: sp[0], path: sp[1]};
     }
 
     public getFileContent(fileKey: string) : Observable<string> {
         const sp = JSGitService.splitFileKey(fileKey);
-        const repo = this.repo[sp.repoUrl]];
+        const repo = this.repo[sp.repoUrl];
         return repo["contents"].flatMap((contents) => {
             const filehash = contents[sp.path].hash;
             return Observable.create((observer) => {

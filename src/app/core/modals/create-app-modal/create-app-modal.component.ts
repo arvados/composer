@@ -3,6 +3,7 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
 import * as YAML from "js-yaml";
 import {SlugifyPipe} from "ngx-pipes";
 import {Observable} from "rxjs/Observable";
+import {ReplaySubject} from "rxjs/ReplaySubject";
 import {Project} from "../../../../../electron/src/sbg-api-client/interfaces/project";
 import {AuthService} from "../../../auth/auth.service";
 import {AppGeneratorService} from "../../../cwl/app-generator/app-generator.service";
@@ -94,12 +95,22 @@ import { JSGitService } from '../../../services/js-git/js-git.service';
 
                 <div class="form-group" *ngIf="destination === 'arvados'">
                     <label>Destination Git Repository:</label>
-                    <ct-auto-complete formControlName="repo"
+                <ct-auto-complete formControlName="repo"
                                       [mono]="true"
                                       [options]="gitRepos"
                                       placeholder="Choose a destination repository..."
                                       optgroupField="hash"
                                       data-test="new-app-destination-repo"></ct-auto-complete>
+                    <label>Destination directory:</label>
+                <ct-auto-complete formControlName="subdir"
+                                      [mono]="true"
+                                      [options]="gitSubdirs"
+                                      [create]="true"
+                                      [persist]="true"
+                                      [createOnBlur]="true"
+                                      placeholder="Choose a destination directory..."
+                                      optgroupField="hash"
+                                      data-test="new-app-destination-subdir"></ct-auto-complete>
                 </div>
 
                 <div *ngIf="destination === 'remote' && remoteAppCreationError ">
@@ -159,6 +170,7 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
 
     projectOptions               = [];
     gitRepos                     = [];
+    gitSubdirs                   = [];
     checkingSlug                 = false;
     appTypeLocked                = false;
     appCreationInProgress        = false;
@@ -213,7 +225,8 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
             name: new FormControl("", [Validators.required]),
             repo: new FormControl(undefined, [Validators.required]),
             cwlVersion: new FormControl("v1.0", [Validators.required]),
-            type: new FormControl(this.appType, [Validators.required])
+            type: new FormControl(this.appType, [Validators.required]),
+            subdir: new FormControl(undefined, [Validators.required])
        });
 
         this.forms["local"] = this.localForm;
@@ -222,7 +235,6 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
 
         // Transform remote name changes into slug value
         this.remoteForm.get("name").valueChanges.subscribeTracked(this, (value) => this.remoteForm.patchValue({slug: this.slugify.transform(value)}));
-
 
         // Check out open projects on platform and map them to select box options
         this.platformRepository.getOpenProjects()
@@ -234,13 +246,29 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
                 }));
             });
 
-        this.jsgit.getLoadedRepos()
+        this.arvRepository.getGitRepos()
             .map(repos => repos || [])
             .subscribeTracked(this, repos => {
-                this.gitRepos = repos.map((repoUrl) => ({
-                    value: repoUrl,
-                    text: repoUrl
+                console.log(repos);
+                this.gitRepos = repos.map((repo) => ({
+                    value: repo["url"],
+                    text: repo["name"]
                 }));
+            });
+
+
+        this.arvadosForm.get("repo")
+            .valueChanges
+            .subscribeTracked(this, (value) => {
+                this.jsgit.getRepoContents(value).take(1).subscribe((contents) => {
+                    const sub = [];
+                    for (let c in contents) {
+                        if (c.endsWith("/")) {
+                            sub.push(c);
+                        }
+                    }
+                    this.gitSubdirs = sub;
+                });
             });
     }
 
@@ -379,13 +407,15 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
         this.error                = undefined;
         this.localAppCreationInfo = undefined;
 
-        const {name, repo, cwlVersion, type} = this.arvadosForm.getRawValue();
+        const {name, repo, cwlVersion, type, subdir} = this.arvadosForm.getRawValue();
 
-        const fileBasename = name + ".cwl";
+        const fileBasename = this.slugify.transform(name) + ".cwl";
         const app  = AppGeneratorService.generate(cwlVersion, type, fileBasename, name);
         const dump = YAML.dump(app);
 
-        const path = repo + "#/" + fileBasename;
+        subdir = "/" + subdir.match(/^\/?(.*?)\/?$/)[1] + "/";
+
+        const path = repo + "#" + subdir + fileBasename;
 
         this.fileRepository.saveFile(path, dump).then(() => {
 

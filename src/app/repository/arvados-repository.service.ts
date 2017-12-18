@@ -59,7 +59,7 @@ export class ArvadosRepositoryService {
         this.listen("openTabs").subscribe(this.openTabs);
         this.listen("publicApps").subscribe(this.publicApps);
         this.listen("recentApps").subscribe(this.recentApps);
-        this.listen("openProjects").subscribe(this.openProjects);
+        //this.listen("openProjects").subscribe(this.openProjects);
         this.listen("expandedNodes").subscribe(this.expandedNodes);
         this.listen("appMeta").subscribe(this.appMeta);
 
@@ -234,48 +234,6 @@ export class ArvadosRepositoryService {
             content: content
         }).toPromise();
     }
-
-    // getOpenRepos(): Observable<string[]> {
-    //     return Observable
-    //         .combineLatest(this.openRepos)
-    //         .map(data => {
-
-    //             // If either of them is null, then we don't know which projects are open
-    //             if (~data.indexOf(null)) {
-    //                 return null;
-    //             }
-
-    //             const [all, open] = data;
-    //             if (open.length === 0) {
-    //                 return [];
-    //             }
-
-    //             const mapped = all.reduce((acc, item) => ({...acc, [item.id]: item}), {});
-    //             return open.map(id => mapped[id] || undefined).filter(v => v);
-    //         });
-    // }
-
-    // addOpenRepos(projectIDs: string[], expandNodes: boolean = false) {
-    //     return this.openRepos.take(1).toPromise().then(openRepos => {
-
-    //         const missing = projectIDs.filter(id => openRepos.indexOf(id) === -1);
-
-    //         if (missing.length === 0) {
-    //             return Promise.resolve();
-    //         }
-
-    //         if (expandNodes) {
-    //             this.auth.getActive().take(1).subscribe((active) => {
-    //                 // Expand added projects
-    //                 this.setNodeExpansion(missing.concat(active.getHash()), true);
-    //             });
-    //         }
-
-    //         return this.patch({openRepos: openRepos.concat(missing)}).toPromise();
-
-    //     });
-    // }
-
 
     saveAppRevision(appID: string, content: string, revisionNote?: string): Promise<string> {
 
