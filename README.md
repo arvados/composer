@@ -19,7 +19,6 @@ git clone https://github.com/rabix/composer
 cd composer
 yarn install
 ```
-
 **If you are using Linux:**
 
 Install node.js from https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions
@@ -71,4 +70,3 @@ Previous command will create `ng-dist` directory. You need to create a YAML file
 ## Documentation
 
 Now you can read the [Rabix Composer documentation](https://github.com/rabix/composer/wiki) to learn more about Rabix Composer.
-
