@@ -70,4 +70,3 @@ Previous command will create `ng-dist` directory. You need to create a YAML file
 ## Documentation
 
 Now you can read the [Rabix Composer documentation](https://github.com/rabix/composer/wiki) to learn more about Rabix Composer.
-
