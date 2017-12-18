@@ -51,8 +51,8 @@ yarn install
 yarn run compile:angular --environment=webprod
 cd $WORKDIR
 # Build deb and rpm packages using fpm from ng-dist passing the destination folder for the deploy to be /var/www/arvados-composer/
-fpm -s dir -t deb  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" --deb-no-default-config-files $WORKDIR/ng-dist/=/var/www/arvados-composer/
-fpm -s dir -t rpm  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" $WORKDIR/ng-dist/=/var/www/arvados-composer/
+fpm -s dir -t deb  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" --deb-no-default-config-files $WORKDIR/ng-dist/=/var/www/arvados-composer/composer/
+fpm -s dir -t rpm  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" $WORKDIR/ng-dist/=/var/www/arvados-composer/composer/
 
 mkdir $WORKDIR/packages
 mkdir $WORKDIR/packages/centos7
