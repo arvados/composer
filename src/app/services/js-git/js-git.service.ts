@@ -42,11 +42,16 @@ export class JSGitService {
         return repoObj["contents"];
     }
 
-    public getFileContent(fileKey: string) : Observable<string> {
+    static splitFileKey(fileKey: string): Object {
         const sp = fileKey.split("#", 2);
-        const repo = this.repo[sp[0]];
+        return {repoUrl: sp[0], path: sp[1]};
+    }
+
+    public getFileContent(fileKey: string) : Observable<string> {
+        const sp = JSGitService.splitFileKey(fileKey);
+        const repo = this.repo[sp.repoUrl]];
         return repo["contents"].flatMap((contents) => {
-            const filehash = contents[sp[1]].hash;
+            const filehash = contents[sp.path].hash;
             return Observable.create((observer) => {
                 repo["getContentByHash"](filehash, (content) => {
                     observer.next(content);
@@ -65,28 +70,28 @@ export class JSGitService {
     }
 
     getFileInfo(fileKey: string): Observable<any> {
-        const sp = fileKey.split("#", 2);
-        return this.getRepoContents(sp[0]).map(r => r[sp[1]]);
+        const sp = JSGitService.splitFileKey(fileKey);
+        return this.getRepoContents(sp.repoUrl).map(r => r[sp.path]);
     }
 
     getRepoHead(repoUrl: string, branch: string): Observable<string> {
-        var repos = this.repo;
+        const repoObj = this.repo[repoUrl];
         return Observable.create(function (observer) {
-            repos[repoUrl].readRef('refs/heads/'+branch, (err, commitHash) => {
+            repoObj.readRef('refs/heads/'+branch, (err, commitHash) => {
                 observer.next(commitHash);
                 observer.complete();
             });
         });
     }
 
-    public saveToGitRepo(path: string, content: string) {
+    public saveToGitRepo(fileKey: string, content: string) {
         const self = this;
-        const sp = path.split("#", 2);
-        const repoObj = this.repo[sp[0]];
+        const sp = JSGitService.splitFileKey(fileKey);
+        const repoObj = this.repo[sp.repoUrl];
 
         return Observable.create((observer) => {
             const fileToCommit = {
-                path: sp[1],
+                path: sp.path,
                 mode: 33188,
                 content
             };

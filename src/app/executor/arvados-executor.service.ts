@@ -5,6 +5,7 @@ import {AppExecutionContext, ExecutorConfig} from "../../../electron/src/storage
 import {AppHelper} from "../core/helpers/AppHelper";
 import {LocalRepositoryService} from "../repository/local-repository.service";
 import {PlatformRepositoryService} from "../repository/platform-repository.service";
+import {ArvadosRepositoryService} from "../repository/arvados-repository.service";
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
 import { AuthService } from "../auth/auth.service";
 import { JSGitService } from "../services/js-git/js-git.service";
@@ -15,23 +16,14 @@ export class ArvExecutorService {
 
     private config        = new ReplaySubject<ExecutorConfig>(1);
     private executorState = new ReplaySubject<"VALID" | "INVALID" | "UNSET">(1);
-    private userToken;
-    private headers;
-    private httpOptions;
     private jsgit;
 
     constructor(private _http: Http,
                 private _authService: AuthService,
                 private _jsgit: JSGitService,
-                private _config: ConfigurationService)
+                private _config: ConfigurationService,
+                private _arvRepo: ArvadosRepositoryService)
     {
-        this._authService.getActive().do((tok) => {
-            this.userToken = tok;
-            this.headers = new Headers({
-                "Authorization": "OAuth2 " + this.userToken
-            });
-        });
-        this.httpOptions = new RequestOptions({ headers: this.headers });
         this.jsgit = _jsgit;
     }
 
@@ -52,31 +44,31 @@ export class ArvExecutorService {
     }
 
     run(appID: string, content: string, model: Object, options = {}): Observable<string> {
-        var fi = this.jsgit.getFileInfo(appID);
-        var jsgit = this.jsgit;
-        var _http = this._http;
+        const sp = JSGitService.splitFileKey(appID);
+        const self = this;
 
-        return jsgit.getRepoCommit(fi.repoUrl, 'master').flatMap((commithash) => {
-            var input_defaults = {}
+        return self.jsgit.getRepoHead(sp.repoUrl, 'master').flatMap((commithash) => {
+            console.log("tell me 1");
+            const input_defaults = {};
             for (var i in model["inputs"]) {
                 var input = model["inputs"][i];
                 if (input["default"] !== undefined) {
-                    var shortid;
+                    let shortid;
                     if (input["id"][0] == "#") {
                         shortid = input["id"].substr(1);
                     } else {
-                        var sp = input["id"].split("/");
-                        shortid = sp[sp.length-1];
+                        let shortsplit = input["id"].split("/");
+                        shortid = shortsplit[sp.length-1];
                     }
                     input_defaults[shortid] = input["default"]
                 }
             }
-
+            console.log("tell me 2");
             var body = {
                 container_request: {
-                    name: fi.path,
+                    name: sp.path,
                     command: ["arvados-cwl-runner", "--local", "--api=containers",
-                              "/var/lib/cwl/run"+fi.path,
+                              "/var/lib/cwl/run"+sp.path,
                               "/var/lib/cwl/cwl.input.json"],
                     container_image: "arvados/jobs",
                     cwd: "/var/spool/cwl",
@@ -101,7 +93,7 @@ export class ArvExecutorService {
                         },
                         "/var/lib/cwl/run": {
                             kind: "git_tree",
-                            uuid: jsgit.getRepoUuid(fi.repoUrl),
+                            uuid: self._arvRepo.getRepoUuid(sp.repoUrl),
                             commit: commithash,
                             path: "/"
                         }
@@ -113,15 +105,21 @@ export class ArvExecutorService {
                     }
                 }
             };
-
-            this._config.configuration.flatMap((conf) => {
-                const apiEndPoint = conf['apiEndPoint'];
-                return _http.post(apiEndPoint+'/arvados/v1/container_requests',
-                                  body, this.httpOptions);
+            return self._authService.getActive().take(1).flatMap((tok) => {
+                const headers = new Headers({
+                    "Authorization": "OAuth2 " + tok.token
+                });
+                return self._config.configuration.take(1).flatMap((conf) => {
+                    const apiEndPoint = conf['apiEndPoint'];
+                    return self._http.post(apiEndPoint+'/arvados/v1/container_requests',
+                                           body, new RequestOptions({ headers }));
+                });
             });
         }).flatMap(response => {
-            return this._config.discoveryDoc.map((conf) => {
+            console.log("resp 1");
+            return self._config.discoveryDoc.take(1).map((conf) => {
                 var url = conf["workbenchUrl"] + "/container_requests/" + response.json().uuid;
+                console.log("opening tab "+url);
                 window.open(url, "_blank");
                 return url;
             });
