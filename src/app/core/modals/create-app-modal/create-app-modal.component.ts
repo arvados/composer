@@ -162,7 +162,7 @@ import { JSGitService } from '../../../services/js-git/js-git.service';
 })
 export class CreateAppModalComponent extends DirectiveBase implements OnInit {
 
-    @Input() appType: "CommandLineTool" | "Workflow" = "CommandLineTool";
+    @Input() appType: "CommandLineTool" | "Workflow" | "Code" = "CommandLineTool";
     @Input() destination: "local" | "remote" | "arvados"  = "arvados";
     @Input() cwlVersion: "v1.0" | "d2sb"             = "v1.0";
     @Input() defaultFolder: string;
@@ -409,9 +409,17 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
 
         const {name, repo, cwlVersion, type, subdir} = this.arvadosForm.getRawValue();
 
-        const fileBasename = this.slugify.transform(name) + ".cwl";
-        const app  = AppGeneratorService.generate(cwlVersion, type, fileBasename, name);
-        const dump = YAML.dump(app);
+        let fileBasename = name;
+
+        if (type != "Code") {
+            fileBasename = fileBasename + ".cwl";
+        }
+
+        let dump = "";
+        if (type === "Workflow" || type === "CommandLineTool") {
+            const app  = AppGeneratorService.generate(cwlVersion, type, fileBasename, name);
+            dump = YAML.dump(app);
+        }
 
         const adjustedsubdir = "/" + subdir.match(/^\/?(.*?)\/?$/)[1] + "/";
 
@@ -422,9 +430,9 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
             const tabData = {
                 id: path,
                 isWritable: true,
-                language: "yaml",
+                language: "",
                 label: path.split("/").pop(),
-                type: this.appType,
+                type
             };
 
             this.workbox.openTab(this.workbox.getOrCreateAppTab(tabData));

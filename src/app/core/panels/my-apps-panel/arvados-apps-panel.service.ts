@@ -112,6 +112,7 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                                             } else if (cwltype === "CommandLineTool") {
                                                 icon = "fa-terminal";
                                             } else {
+                                                cwltype = "Code";
                                                 icon = "fa-file";
                                             }
 
