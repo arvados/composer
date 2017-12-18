@@ -39,7 +39,11 @@ export class WorkboxService {
         this.auth.getActive()
             .switchMap(() => this.getStoredTabs().take(1))
             // If we have no active tabs, add a "new file"
-            .map(tabDataList => tabDataList.length ? tabDataList : [this.homeTabData])
+            .map(tabDataList => {
+                console.log("tabDataList");
+                console.log(tabDataList);
+                return tabDataList.length ? tabDataList : [this.homeTabData]
+                })
             .map(tabDataList => tabDataList.map(tabData => {
                 return this.isUtilityTab(tabData) ? tabData : this.getOrCreateAppTab(tabData, true);
             }))
@@ -51,8 +55,6 @@ export class WorkboxService {
 
 
     getStoredTabs() {
-
-
         const local    = this.localRepository.getOpenTabs();
         const platform = this.auth.getActive().switchMap(user => {
             if (!user) {
@@ -61,9 +63,9 @@ export class WorkboxService {
             return this.platformRepository.getOpenTabs();
         }).filter(v => v !== null);
 
-        return Observable.combineLatest(local, platform,
-            (local, platform) => [...local, ...platform].sort((a, b) => a.position - b.position)
-        );
+        //return Observable.combineLatest(local, platform,
+        //    (local, platform) => [...local, ...platform].sort((a, b) => a.position - b.position)
+        return local;
     }
 
     syncTabs(): Promise<any> {
@@ -303,5 +305,3 @@ export class WorkboxService {
 
     }
 }
-
-

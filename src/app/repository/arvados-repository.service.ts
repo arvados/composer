@@ -56,7 +56,7 @@ export class ArvadosRepositoryService {
 
         this.listen("apps").subscribe(this.apps);
         this.listen("projects").subscribe(this.projects);
-        this.listen("openTabs").subscribe(this.openTabs);
+        //this.listen("openTabs").subscribe(this.openTabs);
         this.listen("publicApps").subscribe(this.publicApps);
         this.listen("recentApps").subscribe(this.recentApps);
         //this.listen("openProjects").subscribe(this.openProjects);

@@ -413,9 +413,9 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
         const app  = AppGeneratorService.generate(cwlVersion, type, fileBasename, name);
         const dump = YAML.dump(app);
 
-        subdir = "/" + subdir.match(/^\/?(.*?)\/?$/)[1] + "/";
+        const adjustedsubdir = "/" + subdir.match(/^\/?(.*?)\/?$/)[1] + "/";
 
-        const path = repo + "#" + subdir + fileBasename;
+        const path = repo + "#" + adjustedsubdir + fileBasename;
 
         this.fileRepository.saveFile(path, dump).then(() => {
 
