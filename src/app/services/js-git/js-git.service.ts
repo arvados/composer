@@ -69,6 +69,14 @@ export class JSGitService {
         }
     }
 
+    getLoadedRepos(): Observable<Array<string>> {
+        const rp = [];
+        for (let a in this.repo) {
+            rp.push(a);
+        }
+        return Observable.of(rp);
+    }
+
     getFileInfo(fileKey: string): Observable<any> {
         const sp = JSGitService.splitFileKey(fileKey);
         return this.getRepoContents(sp.repoUrl).map(r => r[sp.path]);

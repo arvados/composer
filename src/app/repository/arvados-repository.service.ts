@@ -15,7 +15,6 @@ import {IpcService} from "../services/ipc.service";
 import {AuthCredentials} from "../auth/model/auth-credentials";
 import {CookieService} from 'ngx-cookie';
 import { Http, Headers, Response, BrowserXhr, RequestOptions, BaseRequestOptions, ResponseOptions, BaseResponseOptions, ConnectionBackend, XHRBackend, XSRFStrategy, CookieXSRFStrategy } from '@angular/http';
-import { JSGitService } from '../services/js-git/js-git.service';
 import { ConfigurationService } from '../app.config'
 
 @Injectable()
@@ -24,7 +23,7 @@ export class ArvadosRepositoryService {
     private apps: ReplaySubject<App[]>                = new ReplaySubject(1);
     private publicApps: ReplaySubject<App[]>          = new ReplaySubject(1);
     private projects: ReplaySubject<Project[]>        = new ReplaySubject(1);
-    private openProjects: ReplaySubject<string[]>     = new ReplaySubject(1);
+    private openRepos: ReplaySubject<string[]>        = new ReplaySubject(1);
     private expandedNodes: ReplaySubject<string[]>    = new ReplaySubject(1);
     private openTabs: ReplaySubject<TabData<any>[]>   = new ReplaySubject(1);
     private recentApps: ReplaySubject<RecentAppTab[]> = new ReplaySubject(1);
@@ -179,42 +178,11 @@ export class ArvadosRepositoryService {
     }
 
     getOpenProjects(): Observable<Project[]> {
-        return Observable
-            .combineLatest(this.projects, this.openProjects)
-            .map(data => {
-
-                // If either of them is null, then we don't know which projects are open
-                if (~data.indexOf(null)) {
-                    return null;
-                }
-
-                const [all, open] = data;
-                if (open.length === 0) {
-                    return [];
-                }
-
-                const mapped = all.reduce((acc, item) => ({...acc, [item.id]: item}), {});
-                return open.map(id => mapped[id] || undefined).filter(v => v);
-            });
+        return Observable.of([]);
     }
 
     getClosedProjects(): Observable<Project[]> {
-        return Observable.combineLatest(this.projects, this.openProjects)
-            .map(data => {
-
-                // If either of them is null, then we don't know which projects are closed
-                if (~data.indexOf(null)) {
-                    return null;
-                }
-
-                const [all, open] = data;
-
-                if (open.length === 0) {
-                    return all;
-                }
-
-                return all.filter(p => open.indexOf(p.id) === -1);
-            });
+        return Observable.of([]);
     }
 
     private listen(key: string) {
@@ -251,43 +219,14 @@ export class ArvadosRepositoryService {
     }
 
     addOpenProjects(projectIDs: string[], expandNodes: boolean = false) {
-        return this.openProjects.take(1).toPromise().then(openProjects => {
-
-            const missing = projectIDs.filter(id => openProjects.indexOf(id) === -1);
-
-            if (missing.length === 0) {
-                return Promise.resolve();
-            }
-
-            if (expandNodes) {
-                /*this.auth.getActive().take(1).subscribe((active) => {
-                    // Expand added projects
-                    this.setNodeExpansion(missing.concat(active.getHash()), true);
-                });*/
-            }
-
-            return this.patch({openProjects: openProjects.concat(missing)}).toPromise();
-
-        });
     }
 
     removeOpenProjects(...projectIDs: string[]) {
-        return this.openProjects.take(1).toPromise().then(openProjects => {
-
-            const update = openProjects.filter(id => projectIDs.indexOf(id) === -1);
-
-            if (update.length !== openProjects.length) {
-                return this.patch({openProjects: update}).toPromise();
-            }
-
-            return Promise.resolve();
-        });
     }
 
     getExpandedNodes() {
         return this.expandedNodes;
     }
-
 
     createApp(appID: string, content: string): Promise<string> {
         return this.ipc.request("createPlatformApp", {
@@ -295,6 +234,48 @@ export class ArvadosRepositoryService {
             content: content
         }).toPromise();
     }
+
+    // getOpenRepos(): Observable<string[]> {
+    //     return Observable
+    //         .combineLatest(this.openRepos)
+    //         .map(data => {
+
+    //             // If either of them is null, then we don't know which projects are open
+    //             if (~data.indexOf(null)) {
+    //                 return null;
+    //             }
+
+    //             const [all, open] = data;
+    //             if (open.length === 0) {
+    //                 return [];
+    //             }
+
+    //             const mapped = all.reduce((acc, item) => ({...acc, [item.id]: item}), {});
+    //             return open.map(id => mapped[id] || undefined).filter(v => v);
+    //         });
+    // }
+
+    // addOpenRepos(projectIDs: string[], expandNodes: boolean = false) {
+    //     return this.openRepos.take(1).toPromise().then(openRepos => {
+
+    //         const missing = projectIDs.filter(id => openRepos.indexOf(id) === -1);
+
+    //         if (missing.length === 0) {
+    //             return Promise.resolve();
+    //         }
+
+    //         if (expandNodes) {
+    //             this.auth.getActive().take(1).subscribe((active) => {
+    //                 // Expand added projects
+    //                 this.setNodeExpansion(missing.concat(active.getHash()), true);
+    //             });
+    //         }
+
+    //         return this.patch({openRepos: openRepos.concat(missing)}).toPromise();
+
+    //     });
+    // }
+
 
     saveAppRevision(appID: string, content: string, revisionNote?: string): Promise<string> {
 
