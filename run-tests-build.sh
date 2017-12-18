@@ -4,12 +4,45 @@
 # SPDX-License-Identifier: AGPL-3.0
 # The script uses the docker image composer-build:latest
 # Usage docker run -ti -v /var/lib/jenkins/workspace/build-packages-composer/:/tmp/composer composer-build:latest /tmp/composer/run-tests-build.sh --build_version 1.0.3
+format_last_commit_here() {
+    local format="$1"; shift
+    TZ=UTC git log -n1 --first-parent "--format=format:$format" .
+}
+
+version_from_git() {
+    # Output the version being built, or if we're building a
+    # dev/prerelease, output a version number based on the git log for
+    # the current working directory.
+    if [[ -n "$ARVADOS_BUILDING_VERSION" ]]; then
+        echo "$ARVADOS_BUILDING_VERSION"
+        return
+    fi
+
+    local git_ts git_hash prefix
+    if [[ -n "$1" ]] ; then
+        prefix="$1"
+    else
+        prefix="0.1"
+    fi
+
+    declare $(format_last_commit_here "git_ts=%ct git_hash=%h")
+    echo "${prefix}.$(date -ud "@$git_ts" +%Y%m%d%H%M%S).$git_hash"
+}
+
+nohash_version_from_git() {
+    version_from_git $1 | cut -d. -f1-3
+}
+
+timestamp_from_git() {
+    format_last_commit_here "%ct"
+}
+
 WORKDIR="/tmp/composer"
 cd $WORKDIR
 if [[ -n "$2" ]]; then
     build_version="$2"
 else
-    build_version=$(git log -1 --date=short --pretty=format:%cd)
+    build_version="$(nohash_version_from_git)"
 fi
 rm -Rf $WORKDIR/node_modules
 rm -f $WORKDIR/*.deb; rm -f $WORKDIR/*.rpm
