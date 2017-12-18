@@ -98,8 +98,12 @@ export class JSGitService {
         const repoObj = this.repo[sp.repoUrl];
 
         return Observable.create((observer) => {
+            let path = sp.path;
+            if (path.startsWith("/")) {
+                path = path.substr(1);
+            }
             const fileToCommit = {
-                path: sp.path,
+                path: path,
                 mode: 33188,
                 content
             };
