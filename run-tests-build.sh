@@ -50,9 +50,10 @@ npm install
 yarn install
 yarn run compile:angular --environment=webprod
 cd $WORKDIR
+echo "apiEndPoint: https://c97qk.arvadosapi.com" > composer.yml
 # Build deb and rpm packages using fpm from ng-dist passing the destination folder for the deploy to be /var/www/arvados-composer/
-fpm -s dir -t deb  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" --deb-no-default-config-files $WORKDIR/ng-dist/=/var/www/arvados-composer/composer/
-fpm -s dir -t rpm  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" $WORKDIR/ng-dist/=/var/www/arvados-composer/composer/
+fpm -s dir -t deb  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" --config-files /etc/arvados/composer/composer.yml --deb-no-default-config-files $WORKDIR/ng-dist/=/var/www/arvados-composer/composer/ $WORKDIR/composer.yml=/etc/arvados/composer/composer.yml
+fpm -s dir -t rpm  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" --config-files /etc/arvados/composer/composer.yml $WORKDIR/ng-dist/=/var/www/arvados-composer/composer/ $WORKDIR/composer.yml=/etc/arvados/composer/composer.yml
 
 mkdir $WORKDIR/packages
 mkdir $WORKDIR/packages/centos7
