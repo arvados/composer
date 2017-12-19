@@ -54,7 +54,7 @@ yarn install
 # fails to load.
 #
 #yarn run compile:angular --environment=webprod
-node --max-old-space-size=4096 ./node_modules/@angular/cli/bin/ng build -aot --environment=webprod
+node --max-old-space-size=4096 ./node_modules/@angular/cli/bin/ng build -aot --environment=webdev
 
 cd $WORKDIR
 echo "apiEndPoint: https://zzzzz.arvadosapi.com" > composer.yml
