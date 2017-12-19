@@ -48,10 +48,17 @@ rm -Rf $WORKDIR/node_modules
 rm -f $WORKDIR/*.deb; rm -f $WORKDIR/*.rpm
 npm install
 yarn install
-yarn run compile:angular --environment=webprod
+
+#
+# Workaround, make dev build (no -prod) until we figure out why prod build
+# fails to load.
+#
+#yarn run compile:angular --environment=webprod
+node --max-old-space-size=4096 ./node_modules/@angular/cli/bin/ng build -aot --environment=webprod
+
 cd $WORKDIR
 echo "apiEndPoint: https://zzzzz.arvadosapi.com" > composer.yml
-ln -s /etc/arvados/composer/composer.yml ng-dist/composer.yml 
+ln -s /etc/arvados/composer/composer.yml ng-dist/composer.yml
 
 # Build deb and rpm packages using fpm from ng-dist passing the destination folder for the deploy to be /var/www/arvados-composer/
 fpm -s dir -t deb  -n arvados-composer -v "$build_version" "--maintainer=Ward Vandewege <ward@curoverse.com>" --description "Composer Package" --config-files /etc/arvados/composer/composer.yml --deb-no-default-config-files $WORKDIR/ng-dist/=/var/www/arvados-composer/composer/ $WORKDIR/composer.yml=/etc/arvados/composer/composer.yml
