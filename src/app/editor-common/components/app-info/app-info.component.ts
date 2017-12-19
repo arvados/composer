@@ -14,9 +14,9 @@ import {SystemService} from "../../../platform-providers/system.service";
                                   [disabled]="readonly"
                                   (saveData)="updateLabel($event)">
 
-                    <h1 class="h3">{{model.label}}</h1>
+                    <h1 class="h3" data-test="app-info-title">{{model.label}}</h1>
                 </ct-inline-editor>
-                <div>Created by {{createdBy}} on {{createdOn | date}}. Last edited by {{editedBy}} on {{editedOn | date}}</div>
+                <div *ngIf="createdBy">Created by {{createdBy}} on {{createdOn | date}}. Last edited by {{editedBy}} on {{editedOn | date}}</div>
                 <div *ngIf="revisionNote">Revision note: “<em>{{revisionNote}}</em>”</div>
             </div>
 
@@ -27,7 +27,7 @@ import {SystemService} from "../../../platform-providers/system.service";
                                   [disabled]="readonly"
                                   type="textarea"
                                   (saveData)="updateDescription($event)">
-                    <div [ct-markdown]="model.description"></div>
+                    <ct-markdown [value]="model.description"></ct-markdown>
                 </ct-inline-editor>
             </div>
 
@@ -130,6 +130,8 @@ import {SystemService} from "../../../platform-providers/system.service";
                     <div class="col-lg-4 col-sm-6 app-info-meta-item">
                         <div class="text-title">Links:</div>
                         <ct-inline-editor [value]="model.customProps['sbg:links']"
+                                          keyLabel="URL"
+                                          valueLabel="Label"
                                           [disabled]="readonly"
                                           type="keyvalue"
                                           (saveData)="updateCustomProp('sbg:links', $event)">

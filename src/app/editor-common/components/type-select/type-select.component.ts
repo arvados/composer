@@ -46,19 +46,19 @@ import {DirectiveBase} from "../../../util/directive-base/directive-base";
 })
 export class InputTypeSelectComponent extends DirectiveBase implements ControlValueAccessor {
 
-    public paramType: ParameterTypeModel;
+    paramType: ParameterTypeModel;
 
-    public types = ["array", "enum", "record", "File", "string", "int", "float", "boolean", "map"];
+    types = ["array", "enum", "record", "File", "string", "int", "float", "boolean", "map"];
 
-    public itemTypes = ["enum", "record", "File", "string", "int", "float", "boolean", "map"];
+    itemTypes = ["enum", "record", "File", "string", "int", "float", "boolean", "map"];
 
-    public form: FormGroup = new FormGroup({
+    form: FormGroup = new FormGroup({
         type: new FormControl(null),
         items: new FormControl(null),
         isItemOrArray: new FormControl(null)
     });
 
-    private readonly = false;
+    readonly = false;
 
     private onTouched = noop;
 
@@ -90,14 +90,16 @@ export class InputTypeSelectComponent extends DirectiveBase implements ControlVa
                 this.paramType.items = change.items;
                 if (this.paramType.isItemOrArray) {
                     this.paramType.isItemOrArray = false;
-                    this.form.controls["isItemOrArray"].setValue(false, {onlySelf: true});
+                    this.form.controls["isItemOrArray"].setValue(false, {onlySelf: true, emitEvent: false});
                 }
             }
 
             if (this.paramType.type === "array" && !this.paramType.items) {
                 this.paramType.items = "File";
-                this.form.controls["items"].setValue("File", {onlySelf: true});
+                this.form.controls["items"].setValue("File", {onlySelf: true, emitEvent: false});
             }
+
+            this.onChange(this.paramType);
         });
     }
 
@@ -111,6 +113,7 @@ export class InputTypeSelectComponent extends DirectiveBase implements ControlVa
 
     setDisabledState(isDisabled: boolean): void {
         this.readonly = isDisabled;
-        isDisabled ? this.form.controls["isItemOrArray"].disable({emitEvent: false}) : this.form.controls["isItemOrArray"].enable({emitEvent: false});
+        isDisabled ? this.form.controls["isItemOrArray"].disable({onlySelf: true, emitEvent: false})
+            : this.form.controls["isItemOrArray"].enable({onlySelf: true, emitEvent: false});
     }
 }

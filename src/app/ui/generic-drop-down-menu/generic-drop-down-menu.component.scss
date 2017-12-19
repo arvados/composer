@@ -5,19 +5,12 @@
     display: inline-block;
 
     .generic-dropdown-button {
-
-        border: inherit;
-        outline: 0;
-
-        &:disabled {
-            cursor: not-allowed;
-        }
     }
 
     .generic-menu {
         z-index: 1000;
         position: absolute;
-        background: #333333;
+        background: #eeeeee;
         border: 1px solid $black;
         border-radius: $border-radius;
         box-shadow: 0 0 6px 2px rgba(0, 0, 0, 0.2);
@@ -35,5 +28,26 @@
         }
     }
 
-}
+    /deep/
+    li {
+        border-bottom: 1px solid $toolbar-border;
+        line-height: $line-height-base;
+        padding: .55rem 1rem;
+        cursor: pointer;
+        min-width: 165px;
+        color: $smoke;
+        text-align: left;
 
+        .text-muted {
+            white-space: nowrap;
+        }
+
+        &:hover {
+            background: $white;
+        }
+
+        &.active {
+            background-color: $gray;
+        }
+    }
+}

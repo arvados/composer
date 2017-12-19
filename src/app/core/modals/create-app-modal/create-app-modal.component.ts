@@ -3,67 +3,77 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
 import * as YAML from "js-yaml";
 import {SlugifyPipe} from "ngx-pipes";
 import {Observable} from "rxjs/Observable";
+import {ReplaySubject} from "rxjs/ReplaySubject";
 import {Project} from "../../../../../electron/src/sbg-api-client/interfaces/project";
 import {AuthService} from "../../../auth/auth.service";
 import {AppGeneratorService} from "../../../cwl/app-generator/app-generator.service";
 import {FileRepositoryService} from "../../../file-repository/file-repository.service";
 import {LocalRepositoryService} from "../../../repository/local-repository.service";
 import {PlatformRepositoryService} from "../../../repository/platform-repository.service";
+import {ArvadosRepositoryService} from "../../../repository/arvados-repository.service";
 import {ModalService} from "../../../ui/modal/modal.service";
 import {DirectiveBase} from "../../../util/directive-base/directive-base";
 import {DataGatewayService} from "../../data-gateway/data-gateway.service";
 import {AppHelper} from "../../helpers/AppHelper";
 import {WorkboxService} from "../../workbox/workbox.service";
+import { JSGitService } from '../../../services/js-git/js-git.service';
 
 @Component({
     selector: "ct-create-app-modal",
     providers: [SlugifyPipe],
     template: `
 
-        <form [formGroup]="destination === 'local' ? localForm : remoteForm" (ngSubmit)="submit()">
+        <form [formGroup]="forms[destination]" (ngSubmit)="submit()">
             <div class="p-1">
 
-                <div *ngIf="!defaultFolder && !defaultProject && (auth.getActive() | async)"
+                <div *ngIf="destination != 'arvados' && !defaultFolder && !defaultProject && (auth.getActive() | async)"
                      class="destination-selection">
-                    <div class="platform clickable" [class.active]="destination === 'local'"
+                    <div class="platform clickable"
+                         data-test="new-app-local-files-tab"
+                         [class.active]="destination === 'local'"
                          (click)="destination = 'local'">
                         <span><i class="fa fa-desktop"></i> Local Files</span>
                     </div>
-                    <div class="platform clickable" [class.active]="destination === 'remote'"
+                    <div class="platform clickable"
+                         data-test="new-app-remote-tab"
+                         [class.active]="destination === 'remote'"
                          (click)="destination = 'remote'">
-                        <span><i class="fa fa-globe"></i> Remote</span>
+                        <span><i class="fa fa-globe"></i> Platform</span>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>App Name:</label>
-                    <input class="form-control" formControlName="name"/>
+                    <input class="form-control" formControlName="name" data-test="new-app-name"/>
                     <p *ngIf="destination === 'remote' && remoteForm.get('name').value"
-                       class="form-text text-muted">
+                       class="form-text text-muted"
+                    >
                         App ID: {{ remoteForm.get('name').value | slugify}}
                     </p>
                 </div>
 
                 <div class="form-group">
                     <label class="">CWL Version:</label>
-                    <select class="form-control" formControlName="cwlVersion">
-                        <option value="v1.0">v1.0</option>
-                        <option value="d2sb">sbg:draft-2</option>
+                    <select class="form-control" formControlName="cwlVersion" data-test="new-app-cwl-version">
+                        <option value="v1.0" data-test="new-app-cwl-v1-option">v1.0</option>
+                        <option value="d2sb" data-test="new-app-cwl-draft2-option">sbg:draft-2</option>
                     </select>
                 </div>
 
                 <div class="form-group col-sm-6" *ngIf="!appTypeLocked">
                     <label>App Type:</label>
-                    <select class="form-control" formControlName="type">
-                        <option value="Workflow">Workflow</option>
-                        <option value="CommandLineTool">Command Line tool</option>
+                    <select class="form-control" formControlName="type" data-test="new-app-type">
+                        <option value="Workflow" data-test="new-app-type-workflow">Workflow</option>
+                        <option value="CommandLineTool" data-test="new-app-type-tool">Command Line tool</option>
                     </select>
                 </div>
 
                 <div class="form-group" *ngIf="destination === 'local'">
                     <label>Destination Path:</label>
 
-                    <button class="btn btn-secondary block" type="button"
+                    <button class="btn btn-secondary block"
+                            type="button"
+                            data-test="new-app-choose-filepath-button"
                             (click)="chooseFilepath()">
                         {{ defaultFolder ? "Choose a File Name" : "Choose a Local Folder" }}
                     </button>
@@ -79,7 +89,28 @@ import {WorkboxService} from "../../workbox/workbox.service";
                                       [mono]="true"
                                       [options]="projectOptions"
                                       placeholder="Choose a destination project..."
-                                      optgroupField="hash"></ct-auto-complete>
+                                      optgroupField="hash"
+                                      data-test="new-app-destination-project"></ct-auto-complete>
+                </div>
+
+                <div class="form-group" *ngIf="destination === 'arvados'">
+                    <label>Destination Git Repository:</label>
+                <ct-auto-complete formControlName="repo"
+                                      [mono]="true"
+                                      [options]="gitRepos"
+                                      placeholder="Choose a destination repository..."
+                                      optgroupField="hash"
+                                      data-test="new-app-destination-repo"></ct-auto-complete>
+                    <label>Destination directory:</label>
+                <ct-auto-complete formControlName="subdir"
+                                      [mono]="true"
+                                      [options]="gitSubdirs"
+                                      [create]="true"
+                                      [persist]="true"
+                                      [createOnBlur]="true"
+                                      placeholder="Choose a destination directory..."
+                                      optgroupField="hash"
+                                      data-test="new-app-destination-subdir"></ct-auto-complete>
                 </div>
 
                 <div *ngIf="destination === 'remote' && remoteAppCreationError ">
@@ -100,9 +131,13 @@ import {WorkboxService} from "../../workbox/workbox.service";
 
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" (click)="modal.close()"> Cancel
+                <button type="button" class="btn btn-secondary" data-test="new-app-cancel-button"
+                        (click)="modal.close()"> Cancel
                 </button>
-                <button type="submit" class="btn btn-primary" *ngIf="destination=== 'remote'"
+                <button type="submit"
+                        class="btn btn-primary"
+                        data-test="new-app-create-button"
+                        *ngIf="destination=== 'remote'"
                         [disabled]="!remoteForm.valid || appCreationInProgress">
 
                     <ct-loader-button-content [isLoading]="appCreationInProgress">
@@ -115,6 +150,11 @@ import {WorkboxService} from "../../workbox/workbox.service";
                         [disabled]="!localForm.valid">
                     Create
                 </button>
+
+                <button type="submit" class="btn btn-primary" *ngIf="destination=== 'arvados'"
+                        [disabled]="!arvadosForm.valid">
+                    Create
+                </button>
             </div>
         </form>
     `,
@@ -122,16 +162,18 @@ import {WorkboxService} from "../../workbox/workbox.service";
 })
 export class CreateAppModalComponent extends DirectiveBase implements OnInit {
 
-    @Input() appType: "CommandLineTool" | "Workflow" = "CommandLineTool";
-    @Input() destination: "local" | "remote"         = "local";
+    @Input() appType: "CommandLineTool" | "Workflow" | "Code" = "CommandLineTool";
+    @Input() destination: "local" | "remote" | "arvados"  = "arvados";
     @Input() cwlVersion: "v1.0" | "d2sb"             = "v1.0";
     @Input() defaultFolder: string;
     @Input() defaultProject: string;
 
-    projectOptions        = [];
-    checkingSlug          = false;
-    appTypeLocked         = false;
-    appCreationInProgress = false;
+    projectOptions               = [];
+    gitRepos                     = [];
+    gitSubdirs                   = [];
+    checkingSlug                 = false;
+    appTypeLocked                = false;
+    appCreationInProgress        = false;
 
     error: string;
     localAppCreationInfo: string;
@@ -139,6 +181,9 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
 
     localForm: FormGroup;
     remoteForm: FormGroup;
+    arvadosForm: FormGroup;
+
+    forms = {};
 
     constructor(private dataGateway: DataGatewayService,
                 public modal: ModalService,
@@ -148,7 +193,10 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
                 private workbox: WorkboxService,
                 private platformRepository: PlatformRepositoryService,
                 private localRepository: LocalRepositoryService,
-                private fileRepository: FileRepositoryService) {
+                private fileRepository: FileRepositoryService,
+                private arvRepository: ArvadosRepositoryService,
+                private jsgit: JSGitService)
+                {
 
         super();
     }
@@ -173,9 +221,20 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
             type: new FormControl(this.appType, [Validators.required])
         });
 
+        this.arvadosForm = new FormGroup({
+            name: new FormControl("", [Validators.required]),
+            repo: new FormControl(undefined, [Validators.required]),
+            cwlVersion: new FormControl("v1.0", [Validators.required]),
+            type: new FormControl(this.appType, [Validators.required]),
+            subdir: new FormControl(undefined, [Validators.required])
+       });
+
+        this.forms["local"] = this.localForm;
+        this.forms["remote"] = this.remoteForm;
+        this.forms["arvados"] = this.arvadosForm;
+
         // Transform remote name changes into slug value
         this.remoteForm.get("name").valueChanges.subscribeTracked(this, (value) => this.remoteForm.patchValue({slug: this.slugify.transform(value)}));
-
 
         // Check out open projects on platform and map them to select box options
         this.platformRepository.getOpenProjects()
@@ -186,14 +245,40 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
                     text: project.name
                 }));
             });
+
+        this.arvRepository.getGitRepos()
+            .map(repos => repos || [])
+            .subscribeTracked(this, repos => {
+                console.log(repos);
+                this.gitRepos = repos.map((repo) => ({
+                    value: repo["url"],
+                    text: repo["name"]
+                }));
+            });
+
+
+        this.arvadosForm.get("repo")
+            .valueChanges
+            .subscribeTracked(this, (value) => {
+                this.jsgit.getRepoContents(value).take(1).subscribe((contents) => {
+                    const sub = [];
+                    for (let c in contents) {
+                        if (c.endsWith("/")) {
+                            sub.push(c);
+                        }
+                    }
+                    this.gitSubdirs = sub;
+                });
+            });
     }
 
     submit() {
-
         if (this.destination === "local") {
             this.createLocal();
-        } else {
+        } else if (this.destination === "remote") {
             this.createRemote();
+        } else if (this.destination === "arvados") {
+            this.createArvados();
         }
     }
 
@@ -316,5 +401,45 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
         });
 
         return;
+    }
+
+    createArvados() {
+        this.error                = undefined;
+        this.localAppCreationInfo = undefined;
+
+        const {name, repo, cwlVersion, type, subdir} = this.arvadosForm.getRawValue();
+
+        let fileBasename = name;
+
+        if (type != "Code") {
+            fileBasename = fileBasename + ".cwl";
+        }
+
+        let dump = "";
+        if (type === "Workflow" || type === "CommandLineTool") {
+            const app  = AppGeneratorService.generate(cwlVersion, type, fileBasename, name);
+            dump = YAML.dump(app);
+        }
+
+        const adjustedsubdir = "/" + subdir.match(/^\/?(.*?)\/?$/)[1] + "/";
+
+        const path = repo + "#" + adjustedsubdir + fileBasename;
+
+        this.fileRepository.saveFile(path, dump).then(() => {
+
+            const tabData = {
+                id: path,
+                isWritable: true,
+                language: "",
+                label: path.split("/").pop(),
+                type
+            };
+
+            this.workbox.openTab(this.workbox.getOrCreateAppTab(tabData));
+            this.modal.close();
+        }, err => {
+            this.error = err;
+        });
+
     }
 }

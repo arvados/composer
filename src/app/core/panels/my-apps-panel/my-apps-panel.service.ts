@@ -16,6 +16,7 @@ import {GlobalService} from "../../global/global.service";
 import {WorkboxService} from "../../workbox/workbox.service";
 import {AppsPanelService} from "../common/apps-panel.service";
 import {AppHelper} from "../../helpers/AppHelper";
+import {getDragImageClass, getDragTransferDataType} from "../../../ui/tree-view/tree-view-utils";
 
 @Injectable()
 export class MyAppsPanelService extends AppsPanelService {
@@ -72,6 +73,9 @@ export class MyAppsPanelService extends AppsPanelService {
             }
             const platformHash = credentials.getHash();
 
+            console.log(credentials.url);
+            console.log(AuthCredentials.getPlatformLabel(credentials.url));
+
             return {
                 id: platformHash,
                 data: credentials,
@@ -119,10 +123,10 @@ export class MyAppsPanelService extends AppsPanelService {
 
     private createDirectoryListingTreeNodes(listing: FilesystemEntry[]) {
         return listing.map(fsEntry => {
-            
+
 
             const id    = fsEntry.path;
-            
+
             const label = (typeof fsEntry.name === "string") ? fsEntry.name :  AppHelper.getBasename(fsEntry.path);
 
             let icon           = "fa-folder";
@@ -144,7 +148,7 @@ export class MyAppsPanelService extends AppsPanelService {
                     .concat(this.ipc.request("readDirectory", pathData))
                     .map(list => this.createDirectoryListingTreeNodes(list));
             }
-      
+
             return MyAppsPanelService.makeTreeNode({
                 id,
                 icon,
@@ -153,14 +157,13 @@ export class MyAppsPanelService extends AppsPanelService {
                 iconExpanded,
                 data: fsEntry,
                 dragLabel: label,
-                dragDropZones: ["zone1"],
+                dragDropZones: ["graph-editor", "job-editor"],
                 isExpandable: fsEntry.isDir,
-                dragTransferData: fsEntry.path,
+                dragTransferData: {name: fsEntry.path, type: getDragTransferDataType(fsEntry)},
                 type: fsEntry.isDir ? "folder" : "file",
                 isExpanded: this.localExpandedNodes.map(list => list.indexOf(fsEntry.path) !== -1),
-                dragEnabled: ["Workflow", "CommandLineTool"].indexOf(fsEntry.type) !== -1,
-                dragImageClass: fsEntry.type === "CommandLineTool" ? "icon-command-line-tool" : "icon-workflow",
-
+                dragEnabled: true,
+                dragImageClass: getDragImageClass(fsEntry)
             });
         });
     }
@@ -188,15 +191,17 @@ export class MyAppsPanelService extends AppsPanelService {
     private createPlatformAppListingTreeNodes(apps: App[], isWritable: boolean): TreeNode<App>[] {
         return apps.map(app => {
 
+            const revisionlessID = AppHelper.getRevisionlessID(app.id);
+
             return {
-                id: app.id,
+                id: revisionlessID,
                 data: {...app, isWritable},
                 label: app.name,
                 type: "app",
                 icon: app.raw.class === "CommandLineTool" ? "fa-terminal" : "fa-share-alt",
                 dragEnabled: true,
-                dragTransferData: app.id,
-                dragDropZones: ["zone1"],
+                dragTransferData: {name: revisionlessID, type: "cwl"},
+                dragDropZones: ["graph-editor"],
                 dragLabel: app.name,
                 dragImageClass: app.raw.class === "CommandLineTool" ? "icon-command-line-tool" : "icon-workflow",
             };

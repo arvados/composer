@@ -1,8 +1,14 @@
 import * as mock from "mock-require";
-import * as acceleratorProxy from "./accelerator-proxy";
 import * as path from "path";
+import * as acceleratorProxy from "./accelerator-proxy";
+import * as openExternalFileProxy from "./open-external-file-proxy";
+
+require("fix-path")();
 
 const {app, Menu, BrowserWindow} = require("electron");
+const {registerProtocolForLinux} = require("./register-protocols");
+const deepLinkingController      = require("./controllers/open-external-file/deep-linking-protocol-controller");
+const localFileController        = require("./controllers/open-external-file/open-file-handler-controller");
 
 const isSpectronRun       = ~process.argv.indexOf("--spectron");
 const defaultUserDataPath = app.getPath("home") + path.sep + ".sevenbridges/rabix-composer";
@@ -17,7 +23,7 @@ applyCLIArgs();
 
 const router = require("./ipc-router");
 
-let win;
+let win = null;
 let splash;
 
 function start(config: { devTools: boolean, url: string }) {
@@ -59,7 +65,7 @@ function start(config: { devTools: boolean, url: string }) {
     }
 
     win.on("closed", () => {
-        win = undefined;
+        win = null;
     });
 
 
@@ -67,6 +73,14 @@ function start(config: { devTools: boolean, url: string }) {
         {
             label: "Application",
             submenu: [
+                {
+                    label: "Save",
+                    accelerator: "CmdOrCtrl+S",
+                    selector: "save:",
+                    click: (menu, browser, event) => {
+                        acceleratorProxy.pass(menu, browser, event);
+                    }
+                },
                 {
                     label: "Check For Updates...",
                     accelerator: "checkForPlatformUpdates",
@@ -150,8 +164,52 @@ function start(config: { devTools: boolean, url: string }) {
     ] as any[] /* types are not accurate for menu items */));
 }
 
+
 export = {
     start: (config) => {
+
+        // Register protocol for linux (update .desktop and mimeapps.list files)
+        if (process.platform === "linux") {
+            registerProtocolForLinux();
+        }
+
+        // Protocol handler for darwin
+        app.setAsDefaultProtocolClient("rabix-composer");
+        app.on("open-url", function (event, url) {
+            openExternalFiles(url);
+            focusMainWindow();
+        });
+
+        // File handler for darwin
+        app.on("open-file", function (event, filePath) {
+            openExternalFiles(filePath);
+            focusMainWindow();
+        });
+
+        // Initial File handler for win32 and linux
+        if (process.platform === "win32" || process.platform === "linux") {
+            openExternalFiles(...getFilePathsFromArgs(process.argv.slice(1)));
+        }
+
+        // File/Protocol handler for win32 and linux
+        const runningInstanceExists = app.makeSingleInstance((argv) => {
+            // Someone tried to run a second instance, we should focus our window.
+
+            // Protocol handler for win32 and linux
+            // argv: An array of the second instance’s (command line / deep linked) arguments
+            if (process.platform === "win32" || process.platform === "linux") {
+                // Keep only command line / deep linked arguments
+                openExternalFiles(...getFilePathsFromArgs(argv.slice(1)));
+            }
+
+            focusMainWindow();
+        });
+
+        // If there is already a running instance of Composer, shut down this new one and let the existing one handle incoming data
+        if (runningInstanceExists) {
+            app.quit();
+            return
+        }
 
         // This method will be called when Electron has finished
         // initialization and is ready to create browser windows.
@@ -163,22 +221,64 @@ export = {
 
             // On macOS it is common for applications and their menu bar
             // to stay active until the user quits explicitly with Cmd + Q
-            if (process.platform !== "darwin") {
-                app.quit();
-            }
+            // if (process.platform !== "darwin") {
+            //     app.quit();
+            // }
+
+            app.quit();
 
         });
 
-        app.on("activate", () => {
-            // On macOS it's common to re-create a window in the App when the
-            // dock icon is clicked and there are no other windows open.
-            if (win === null) {
-                start(config);
-            }
-        });
+        // This is not needed unless we add functionality again of re-creating window from menu bar (macOS)
+        // app.on("activate", () => {
+        //     // On macOS it's common to re-create a window in the App when the
+        //     // dock icon is clicked and there are no other windows open.
+        //     if (win === null) {
+        //         start(config);
+        //     }
+        // });
+
     }
 }
 
+/**
+ * Open external files (using deep linking or file protocol)
+ */
+function openExternalFiles(...items: string[]) {
+    items.forEach((item) => {
+        if (item.startsWith("rabix-composer://")) {
+            const encoded = item.replace("rabix-composer://", "");
+            const data    = deepLinkingController.setMagnetLinkData(encoded);
+            openExternalFileProxy.passMagnetLink(data);
+        } else {
+            const filePath = localFileController.setLocalFilePath(item);
+            openExternalFileProxy.passFilePath(filePath);
+        }
+    });
+}
+
+/**
+ * Filter command line arguments to get file paths
+ */
+function getFilePathsFromArgs(args: string []) {
+    // If dev mode do not use first argument as a file path
+    const devMode = process.argv.find(arg => arg.startsWith("--dev-mode"));
+
+    return args.filter((arg, index) => !(arg.startsWith("-") || (devMode && index === 0)));
+}
+
+
+/**
+ * Focus main window
+ */
+function focusMainWindow() {
+    if (win) {
+        if (win.isMinimized()) {
+            win.restore()
+        }
+        win.focus()
+    }
+}
 
 /**
  * If we are running functional tests with spectron, we need to expose more of the app to

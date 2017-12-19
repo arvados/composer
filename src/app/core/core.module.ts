@@ -6,8 +6,9 @@ import {environment} from "../../environments/environment";
 import {AuthModule} from "../auth/auth.module";
 import {EditorCommonModule} from "../editor-common/editor-common.module";
 import {ExecutorService} from "../executor/executor.service";
-import {ArvExecutorService} from "../executor/arvexecutor.service";
+import {ArvExecutorService} from "../executor/arvados-executor.service";
 import {LayoutModule} from "../layout/layout.module";
+import {NativeModule} from "../native/native.module";
 import {ToolEditorModule} from "../tool-editor/tool-editor.module";
 import {MarkdownService} from "../ui/markdown/markdown.service";
 import {ModalService} from "../ui/modal/modal.service";
@@ -41,6 +42,7 @@ import {SettingsMenuComponent} from "./workbox/settings-menu.component";
 import {WorkBoxTabComponent} from "./workbox/workbox-tab.component";
 import {WorkBoxComponent} from "./workbox/workbox.component";
 import {WorkboxService} from "./workbox/workbox.service";
+import {ClosingDirtyAppsModalComponent} from "./modals/closing-dirty-apps/closing-dirty-apps-modal.component";
 import {LogoutComponent} from "../logout/logout.component";
 
 export function errorHandlerFactory(modal: ModalService) {
@@ -60,6 +62,7 @@ export function errorHandlerFactory(modal: ModalService) {
         HintsModalComponent,
         PlatformCredentialsModalComponent,
         UpdatePlatformModalComponent,
+        ClosingDirtyAppsModalComponent
     ],
     declarations: [
         AboutPageModalComponent,
@@ -86,11 +89,12 @@ export function errorHandlerFactory(modal: ModalService) {
         HintsModalComponent,
         PlatformCredentialsModalComponent,
         UpdatePlatformModalComponent,
-        LogoutComponent,
+        ClosingDirtyAppsModalComponent,
+        LogoutComponent
     ],
     exports: [
         LogoComponent,
-        LayoutComponent,
+        LayoutComponent
     ],
     providers: [
         WebWorkerBuilderService,
@@ -115,6 +119,7 @@ export function errorHandlerFactory(modal: ModalService) {
         FormsModule,
         ReactiveFormsModule,
         AuthModule,
+        NativeModule,
         UIModule,
         EditorCommonModule,
         ToolEditorModule,

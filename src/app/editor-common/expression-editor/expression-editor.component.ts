@@ -1,9 +1,19 @@
-import {AfterViewInit, ChangeDetectorRef, Component, HostBinding, Input, OnInit, Output, ViewChild} from "@angular/core";
+import {
+    AfterViewInit,
+    ChangeDetectorRef,
+    Component, EventEmitter,
+    HostBinding,
+    Input,
+    OnInit,
+    Output,
+    ViewChild
+} from "@angular/core";
 import {FormControl} from "@angular/forms";
 import {Observable} from "rxjs/Observable";
 import {Subject} from "rxjs/Subject";
 import {CodeEditorComponent} from "../../ui/code-editor-new/code-editor.component";
 import {AceEditorOptions} from "../../ui/code-editor/code-editor.component";
+import {ModalService} from "../../ui/modal/modal.service";
 import {TreeNode} from "../../ui/tree-view/tree-node";
 import {TreeViewComponent} from "../../ui/tree-view/tree-view.component";
 import {TreeViewService} from "../../ui/tree-view/tree-view.service";
@@ -29,13 +39,15 @@ import {DirectiveBase} from "../../util/directive-base/directive-base";
                 <ct-tree-view [nodes]="contextNodes">
                     <ng-template ct-tree-node-label-directive="entry" let-node>
                         <span class="varname">{{node.label}} <span class="vartype">{{node.typeDisplay}}</span></span>
-                    </ng-template>                   
+                    </ng-template>
                 </ct-tree-view>
             </div>
         </div>
         <div class="modal-footer pb-1 pt-1 pr-1">
-            <button *ngIf="!readonly" (click)="action.next('save')" class="btn btn-primary ml-1" type="button">Save</button>
-            <button (click)="action.next('close')" class="btn btn-secondary " type="button mr-1">Cancel</button>
+            <button *ngIf="!readonly" (click)="submit.emit()" class="btn btn-primary ml-1" type="button" [disabled]="disableSave">
+                Save
+            </button>
+            <button (click)="modal.close()" class="btn btn-secondary " type="button mr-1">Cancel</button>
         </div>
     `
 })
@@ -62,7 +74,7 @@ export class ExpressionEditorComponent extends DirectiveBase implements OnInit, 
     readonly = false;
 
     @Output()
-    action = new Subject<"close" | "save">();
+    submit = new EventEmitter();
 
     @ViewChild(TreeViewComponent)
     treeView: TreeViewComponent;
@@ -84,10 +96,13 @@ export class ExpressionEditorComponent extends DirectiveBase implements OnInit, 
 
     contextNodes: TreeNode<any>[];
 
+    disableSave: boolean;
+
     @ViewChild("editor", {read: CodeEditorComponent})
     private editor: CodeEditorComponent;
 
-    constructor(private cdr: ChangeDetectorRef) {
+    constructor(public modal: ModalService,
+                private cdr: ChangeDetectorRef) {
         super();
     }
 
@@ -102,12 +117,15 @@ export class ExpressionEditorComponent extends DirectiveBase implements OnInit, 
             enableBasicAutocompletion: true,
         };
 
-        this.tracked = this.editorControl.valueChanges.debounceTime(500)
+        this.editorControl.valueChanges
+            .do(() => this.disableSave = true)
+            .debounceTime(500)
             .filter(e => typeof e === "string")
             .distinctUntilChanged()
-            .subscribe(content => {
+            .subscribeTracked(this, content => {
                 this.evaluator(content).then((res: any) => {
                     this.status = null;
+                    this.disableSave = false;
 
                     if (typeof res === "object") {
                         this.status = res.type;
@@ -131,8 +149,11 @@ export class ExpressionEditorComponent extends DirectiveBase implements OnInit, 
         this.tree = this.treeView.getService();
 
         this.tracked = this.tree.open.subscribe(node => {
-            this.editor.editor.session.insert(this.editor.getEditorInstance().getCursorPosition(), String(node.id));
-            this.editor.setFocus();
+            // If readonly state then adding values from tree should not be possible
+            if (!this.readonly) {
+                this.editor.editor.session.insert(this.editor.getEditorInstance().getCursorPosition(), String(node.id));
+                this.editor.setFocus();
+            }
         });
 
         this.editor.setFocus();
@@ -171,9 +192,9 @@ export class ExpressionEditorComponent extends DirectiveBase implements OnInit, 
                 node.iconExpanded = "fa-angle-down";
             }
 
-            node.label = key;
-            node.type = "entry";
-            node.typeDisplay = typeDisplay;
+            node.label            = key;
+            node.type             = "entry";
+            node.typeDisplay      = typeDisplay;
             node.toggleOnIconOnly = true;
 
             const trace = [path, key].filter(e => e).join(".");

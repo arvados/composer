@@ -1,10 +1,11 @@
 
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
-import { LoginService } from "../../services/login/login.service";
+import { ReplaySubject } from "rxjs/ReplaySubject";
 import * as HighLevel from "js-git/mixins/high-level";
 
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
+import {AuthService} from "../../auth/auth.service"
 
 @Injectable()
 export class JSGitService {
@@ -13,163 +14,113 @@ export class JSGitService {
     private headers;
     private httpOptions;
     private repo = {};
-    private repository = {};
-    private repo_uuid = {};
-    private files = {};
 
-    private is_clonned = false;
-
-    constructor(private _http: Http, private _loginService: LoginService) {
-        this.userToken = this._loginService.getToken("api_token");
-        this.headers = new Headers({ "Authorization": "OAuth2 " + this.userToken });
-        this.httpOptions = new RequestOptions({ headers: this.headers });
+    constructor(private auth: AuthService, private _http: Http) {
+        this.auth.getActive().subscribe((active) => {
+            if (active) {
+                this.userToken = active.token;
+            } else {
+                this.userToken = ""
+            }
+        });
     }
 
     private createRepo(repoUrl: string): Observable<any> {
-        this.repo[repoUrl] = {};
+        const repoObj = {};
+        HighLevel(repoObj, this.userName, this.userToken, repoUrl);
 
-        HighLevel(this.repo[repoUrl], this.userName, this.userToken, repoUrl);
-        return Observable.create((observer) => {
-            this.repo[repoUrl]["clone"]((data) => {
+        repoObj["contents"] = new ReplaySubject(1);
+        this.repo[repoUrl] = repoObj;
 
-                if (!data) {
-                    this.repo = {};
-                    this.repository = {};
-                    this.files = {};
-                    observer.next([]);
-                }
+        this.repo[repoUrl]["clone"]((data) => {
 
-                this.repo[repoUrl]["resolveRepo"]((data) => {
-                    this.repository[repoUrl] = data;
-                    const level = data["/"];
-                    observer.next(this.formatFolder(level, "/", repoUrl));
-                });
+            if (!data) {
+                return;
+            }
+
+            repoObj["resolveRepo"]((res) => {
+                console.log(res);
+                repoObj["contents"].next(res);
             });
         });
+        return repoObj["contents"];
     }
 
-    public getContent(id: string) {
-
-        return Observable.create((observer) => {
-            this.repo[this.files[id].repoUrl]["getContentByHash"](this.files[id].hash, (content) => {
-                observer.next(content);
-            });
-        });
+    static splitFileKey(fileKey: string): {repoUrl: string, path: string} {
+        const sp = fileKey.split("#", 2);
+        return {repoUrl: sp[0], path: sp[1]};
     }
 
-    public init(data): Observable<any> {
-
-        if (/repositories$/.test(data)) {
-            return this._http.get(data, this.httpOptions).map(response => {
-                const userRepositories = response.json();
-                const parsedRepositories = [];
-                userRepositories.items.forEach(element => {
-                    if (element.hasOwnProperty("clone_urls") && element.clone_urls[1] !== "https://git.4xphq.arvadosapi.com/arvados.git" && element.name != "arvados") {
-                        this.repo_uuid[element.clone_urls[1]] = element.uuid;
-                        parsedRepositories.push({
-                            "dirname": element.name,
-                            "isDir": true,
-                            "isFile": false,
-                            "isReadable": true,
-                            "isWritable": true,
-                            "language": "",
-                            "name": element.name,
-                            "path": element.clone_urls[1],
-                            "type": "",
-                            "repoUrl": element.clone_urls[1]
-                        });
-                    }
-                });
-                return parsedRepositories;
-            });
-        } else if (/.git$/.test(data.path)) {
-            return this.createRepo(data.repoUrl);
-        } else {
+    public getFileContent(fileKey: string) : Observable<string> {
+        const sp = JSGitService.splitFileKey(fileKey);
+        const repo = this.repo[sp.repoUrl];
+        return repo["contents"].flatMap((contents) => {
+            const filehash = contents[sp.path].hash;
             return Observable.create((observer) => {
-                const folder = this.repository[data.repoUrl][data.path];
-
-                if (folder.mode === 16384) {
-                    observer.next(this.formatFolder(folder, data.path, data.repoUrl));
-                }
+                repo["getContentByHash"](filehash, (content) => {
+                    observer.next(content);
+                    observer.complete();
+                });
             });
+        });
+    }
+
+    public getRepoContents(repoUrl): Observable<any> {
+        if (this.repo[repoUrl]) {
+            return this.repo[repoUrl]["contents"];
+        } else {
+            return this.createRepo(repoUrl);
         }
     }
 
-    getFileInfo(fileKey: string) {
-        return this.files[fileKey];
+    getLoadedRepos(): Observable<Array<string>> {
+        const rp = [];
+        for (let a in this.repo) {
+            rp.push(a);
+        }
+        return Observable.of(rp);
     }
 
-    getRepoUuid(repoUrl: string): string {
-        return this.repo_uuid[repoUrl];
+    getFileInfo(fileKey: string): Observable<any> {
+        const sp = JSGitService.splitFileKey(fileKey);
+        return this.getRepoContents(sp.repoUrl).map(r => r[sp.path]);
     }
 
-    getRepoCommit(repoUrl: string, branch: string): Observable<string> {
-        var repos = this.repo;
+    getRepoHead(repoUrl: string, branch: string): Observable<string> {
+        const repoObj = this.repo[repoUrl];
         return Observable.create(function (observer) {
-            repos[repoUrl].readRef('refs/heads/'+branch, (err, commitHash) => {
+            repoObj.readRef('refs/heads/'+branch, (err, commitHash) => {
                 observer.next(commitHash);
                 observer.complete();
             });
         });
     }
 
-    private formatFolder(folder, path, repoKey) {
-        const results = [];
-        for (const key in folder.body) {
-            if (folder.body[key].mode === 16384) {
-                results.push({
-                    "dirname": "",
-                    "isDir": true,
-                    "isFile": false,
-                    "isReadable": true,
-                    "isWritable": true,
-                    "language": "",
-                    "name": key,
-                    "path": path + key + "/",
-                    "type": "",
-                    "repoUrl": repoKey
-                });
-            } else {
-                let objectKey = repoKey + "#" + path + key;
-                this.files[objectKey] = {
-                    path: path + key,
-                    mode: folder.body[key].mode,
-                    content: "",
-                    hash: folder.body[key].hash,
-                    repoUrl: repoKey
-                };
-
-                results.push({
-                    "dirname": "",
-                    "isDir": false,
-                    "isFile": true,
-                    "isReadable": true,
-                    "isWritable": true,
-                    "language": "",
-                    "name": key,
-                    "path": objectKey,
-                    "type": "Workflow",
-                    "repoUrl": repoKey
-                });
-            }
-        }
-        return results;
-    }
-    public saveToGitRepo(data) {
+    public saveToGitRepo(fileKey: string, content: string) {
         const self = this;
+        const sp = JSGitService.splitFileKey(fileKey);
+        const repoObj = this.repo[sp.repoUrl];
 
         return Observable.create((observer) => {
-            const dataForCommit = [];
-            let fileToCommit = Object.assign({}, this.files[data.path]);
-            let repoUrl = fileToCommit.repoUrl;
-            delete fileToCommit.hash;
-            delete fileToCommit.repoUrl;
-            fileToCommit.content = data.content;
-            dataForCommit.push(fileToCommit);
-            self.repo[repoUrl]["commit"](dataForCommit, "commit message", (feedback) => {
-                self.repo[repoUrl]["push"]((feedback) => {
+            let path = sp.path;
+            if (path.startsWith("/")) {
+                path = path.substr(1);
+            }
+            const fileToCommit = {
+                path: path,
+                mode: 33188,
+                content
+            };
+            const dataForCommit = [fileToCommit];
+            repoObj["commit"](dataForCommit, "commit message", (feedback) => {
+                repoObj["push"]((feedback) => {
+                    console.log(feedback);
+                    observer.next(content);
+                    observer.complete();
                 });
-                observer.next(true);
+                repoObj["resolveRepo"]((res) => {
+                    repoObj["contents"].next(res);
+                });
             });
         });
     }

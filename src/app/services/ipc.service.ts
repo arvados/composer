@@ -6,7 +6,6 @@ import {Guid} from "./guid.service";
 import {IPC_EOS_MARK} from "../../../electron/src/constants";
 import {IpcWebService} from './ipc.web.service';
 import {environment} from './../../environments/environment';
-import {LoginService} from './login/login.service';
 
 enum RequestType {
     Once,
@@ -23,9 +22,11 @@ export type IPCRoute =
     | "fetchPlatformData"
     | "getApps"
     | "getAppUpdates"
+    | "getFileOutputInfo"
     | "getLocalFileContent"
     | "getLocalRepository"
     | "getPlatformApp"
+    | "getProject"
     | "getProjects"
     | "getSetting"
     | "getUserByToken"
@@ -56,7 +57,9 @@ export type IPCListeners =
     "watchLocalRepository" |
     "watchUserRepository" |
     "executeApp" |
-    "accelerator";
+    "accelerator" |
+    "deepLinkingHandler" |
+    "openFileHandler";
 
 @Injectable()
 export class IpcService {
@@ -71,9 +74,8 @@ export class IpcService {
     }                   = {};
 
     constructor(@Optional() private zone: NgZone,
-                private _loginService: LoginService,
                 private parentInjector:Injector) {
-        this.ipcRenderer = (environment.browser) ? new IpcWebService(_loginService, parentInjector) : window["require"]("electron").ipcRenderer;
+        this.ipcRenderer = (environment.browser) ? new IpcWebService(parentInjector) : window["require"]("electron").ipcRenderer;
         this.ipcRenderer.on("data-reply", (sender, response) => {
 
             // console.debug("Data reply received", response.id, response);
@@ -165,7 +167,7 @@ export class IpcService {
                 });
 
                 msgSubscription.unsubscribe();
-            }
+            };
         });
 
         return clientObservable;

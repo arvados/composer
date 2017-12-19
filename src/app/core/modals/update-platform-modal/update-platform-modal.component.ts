@@ -11,8 +11,7 @@ import {SystemService} from "../../../platform-providers/system.service";
 
             <div class="header">
                 
-                <div class="logo mb-1">                    
-                </div>
+                <img class="logo mb-1" src="../../../../assets/img/rc_icon_256x256.png">                    
 
                 <div class="header-text">                    
                     <ng-container *ngIf="platformIsOutdated; else upToDate">
@@ -30,8 +29,7 @@ import {SystemService} from "../../../platform-providers/system.service";
 
                 <ng-container *ngIf="platformIsOutdated; else upToDateSection">
                     What's new:
-                    <div [ct-markdown]="description">
-                    </div>
+                    <ct-markdown [value]="description"></ct-markdown>
 
                     <div class="version-info">Current version: Rabix Composer ({{currentVersion}})</div>
                     <div class="version-info">New version: Rabix Composer ({{newVersion}})</div>
@@ -40,12 +38,14 @@ import {SystemService} from "../../../platform-providers/system.service";
                         <div class="mt-2">
                             <div>
                                 <a #downloadLink href="{{linkForDownload}}"
-                                   data-test="download-link" class="btn btn-primary btn-lg"
+                                   data-test="update-platform-modal-download-link" 
+                                   class="btn btn-primary btn-lg"
                                    (click)="system.openLink(downloadLink.href); modal.close(); false;">Download</a>
                             </div>
 
                             <div *ngIf="!isIgnoredVersion">
-                                <button data-test="dismiss-button" class="btn-link clickable dismissButton"
+                                <button class="btn-link clickable dismissButton"
+                                        data-test="update-platform-modal-dismiss-button"
                                         (click)="skipUpdateVersion()">Skip this version</button>
                             </div>
                         </div>
@@ -56,7 +56,8 @@ import {SystemService} from "../../../platform-providers/system.service";
                     <div class="dialog-centered">
                         <div>
                             <div>
-                                <button data-test="close-button" class="btn btn-primary btn-lg"
+                                <button class="btn btn-primary btn-lg"
+                                        data-test="update-platform-modal-close-button" 
                                         (click)="modal.close()">Close</button>
                             </div>
                         </div>

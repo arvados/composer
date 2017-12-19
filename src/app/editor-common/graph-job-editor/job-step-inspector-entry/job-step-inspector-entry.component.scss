@@ -1,0 +1,25 @@
+:host {
+    display: inline-block;
+    width: 100%;
+
+    .array-row {
+        display: flex;
+
+        .delete-btn-group {
+            flex-basis: 30px;
+            padding-left: .5em;
+            padding-top: .1em;
+        }
+
+        ct-job-step-inspector-entry {
+            flex: 1;
+        }
+    }
+
+    .file-meta-edit-btn {
+        border: none;
+        padding: 0;
+        line-height: 2em;
+    }
+
+}

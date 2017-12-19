@@ -19,20 +19,7 @@ import {SendFeedbackModalComponent} from "../modals/send-feedback-modal/send-fee
                 <p class="subtitle">Before you start building</p>
 
                 <p>
-                    Learn how to set up your workspace by
-                    <a #localWorkspaceLink
-                       href="https://github.com/rabix/composer/wiki/Configuration#adding-a-local-workspace"
-                       (click)="system.openLink(localWorkspaceLink.href, $event)"
-                       data-test="local-workspace-link">
-                        adding a local workspace
-                    </a>
-                    and
-                    <a #connectingPlatformLink
-                       href="https://github.com/rabix/composer/wiki/Configuration#connecting-a-platform-account"
-                       (click)="system.openLink(connectingPlatformLink.href, $event)"
-                       data-test="connecting-platform-link">
-                        connecting your Platform account.
-                    </a>
+                   Choose a git repository on the left or choose "Manage Repositories" in the <i class="fa fa-fw fa-chevron-down"></i> menu to create a new one.
                 </p>
             </div>
 
@@ -40,18 +27,8 @@ import {SendFeedbackModalComponent} from "../modals/send-feedback-modal/send-fee
             <div class="item">
                 <p class="subtitle">Build tools and workflows</p>
                 <p>
-                    <a #toolLink href="https://github.com/rabix/composer/wiki/Tool-editor-tutorial-1"
-                       data-test="tool-docs-link"
-                       (click)="system.openLink(toolLink.href, $event)">
-                         Wrap your command line tool
-                    </a>
-                    using the Common Workflow Language.
-                    <a #platformWorkflowLink href="https://github.com/rabix/composer/wiki/Workflow-editor-tutorial-1"
-                       data-test="platform-workflow-link"
-                       (click)="system.openLink(platformWorkflowLink.href, $event)">
-                         Edit a Platform workflow
-                    </a>
-                     in Rabix Composer.
+                    Wrap your command line tool and create workflows
+                    using the <a href="http://www.commonwl.org/user_guide/" target="_blank">Common Workflow Language</a>.
                 </p>
             </div>
 
@@ -60,12 +37,7 @@ import {SendFeedbackModalComponent} from "../modals/send-feedback-modal/send-fee
                 <p class="subtitle">Need help?</p>
                 <p>If you have problems, ideas, or other comments, let us know.</p>
                 <p>
-                    <button type="button"
-                            data-test="get-support-btn"
-                            class="btn btn-primary"
-                            (click)="initiateFeedbackDialog();">
-                        Get in Touch
-                    </button>
+                   <a href="mailto:support@curoverse.com">support@curoverse.com</a>
                 </p>
             </div>
         </div>

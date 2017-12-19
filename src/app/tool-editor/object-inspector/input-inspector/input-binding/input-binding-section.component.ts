@@ -3,6 +3,7 @@ import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validat
 import {CommandInputParameterModel} from "cwlts/models";
 import {noop} from "../../../../lib/utils.lib";
 import {DirectiveBase} from "../../../../util/directive-base/directive-base";
+import {V1CommandInputParameterModel} from "cwlts/models/v1.0";
 
 @Component({
     selector: "ct-input-binding-section",
@@ -21,8 +22,9 @@ import {DirectiveBase} from "../../../../util/directive-base/directive-base";
                 <label class="form-control-label">Value</label>
                 <ct-expression-input
                         [context]="context"
+                        [readonly]="readonly"
                         [formControl]="form.controls['valueFrom']"
-                        [disableLiteralTextInput]="true">
+                        [disableLiteralTextInput]="version === 'sbg:draft-2'">
                 </ct-expression-input>
             </div>
 
@@ -93,6 +95,8 @@ export class InputBindingSectionComponent extends DirectiveBase implements Contr
 
     form: FormGroup;
 
+    version = "sbg:draft-2";
+
     private onTouched = noop;
 
     private propagateChange = noop;
@@ -111,6 +115,8 @@ export class InputBindingSectionComponent extends DirectiveBase implements Contr
 
     writeValue(input: CommandInputParameterModel): void {
         this.input = input;
+
+        this.version = input instanceof V1CommandInputParameterModel ? "v1.0" : "sbg:draft-2";
 
         if (!!this.input.inputBinding) {
             this.createInputBindingForm(this.input);
@@ -136,7 +142,7 @@ export class InputBindingSectionComponent extends DirectiveBase implements Contr
             shellQuote: [input.inputBinding.shellQuote]
         }, {onlySelf: true});
 
-        if (!this.readonly) {``
+        if (!this.readonly) {
             this.listenToInputBindingFormChanges();
         }
     }
@@ -162,7 +168,7 @@ export class InputBindingSectionComponent extends DirectiveBase implements Contr
                     this.input.inputBinding.itemSeparator = form.itemSeparator;
                 }
 
-                if (form.valueFrom !== undefined && form.valueFrom.serialize() === undefined) {
+                if (form.valueFrom !== undefined && form.valueFrom.serialize() === undefined || this.isType("record")) {
                     this.input.inputBinding.valueFrom.setValue("", "string");
                 }
 
@@ -186,7 +192,8 @@ export class InputBindingSectionComponent extends DirectiveBase implements Contr
         this.readonly = isDisabled;
         Object.keys(this.form.controls).forEach((item) => {
             const control = this.form.controls[item];
-            isDisabled ? control.disable() : control.enable();
+            isDisabled ? control.disable({onlySelf: true, emitEvent: false})
+                : control.enable({onlySelf: true, emitEvent: false});
         });
     }
 }

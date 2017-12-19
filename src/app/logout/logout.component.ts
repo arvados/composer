@@ -1,6 +1,7 @@
 import {Component, Input, OnInit, ViewContainerRef, ViewEncapsulation} from "@angular/core";
 import {AbstractControl, FormControl, FormGroup, Validators} from "@angular/forms";
-import {LoginService} from "../services/login/login.service";
+import {AuthService} from "../auth/auth.service";
+import { ConfigurationService } from "../app.config";
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -13,10 +14,17 @@ import {LoginService} from "../services/login/login.service";
 })
 export class LogoutComponent {
 
-    constructor(private _loginService: LoginService) {}
+    private workbenchUrl: string;
+
+    constructor(private _authService: AuthService,
+                private _config: ConfigurationService) {
+    }
 
     logout(): void {
-        this._loginService.logout("api_token");
+        this._config.discoveryDoc.take(1).subscribe((conf) => {
+            this._authService.setActiveCredentials(null);
+            window.location.href = conf["workbenchUrl"] + "/logout";
+        };
     }
 
 }

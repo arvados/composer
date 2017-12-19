@@ -35,7 +35,6 @@ export class AutoCompleteComponent extends SelectComponent implements ControlVal
     private onTouched       = noop;
     private propagateChange = noop;
 
-
     ngOnInit() {
         if (this.mono) {
             this.maxItems = 1;
@@ -77,4 +76,3 @@ export class AutoCompleteComponent extends SelectComponent implements ControlVal
         this.setDisabled(disabled);
     }
 }
-

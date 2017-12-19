@@ -51,7 +51,8 @@ export class ToolOutputInspectorComponent extends DirectiveBase implements OnCha
         if (this.form) {
             Object.keys(this.form.controls).forEach((item) => {
                 const control = this.form.controls[item];
-                this.disabled ? control.disable() : control.enable();
+                this.disabled ? control.disable({onlySelf: true, emitEvent: false})
+                    : control.enable({onlySelf: true, emitEvent: false});
             });
         }
     }
@@ -97,7 +98,7 @@ export class ToolOutputInspectorComponent extends DirectiveBase implements OnCha
             outputEval: [{value: this.output, disabled: this.readonly}]
         });
 
-        if (this.output.outputBinding.hasMetadata && this.output.outputBinding.hasInheritMetadata) {
+        if (this.output.outputBinding.hasMetadata || this.output.outputBinding.hasInheritMetadata) {
             this.form.addControl("metaData", new FormControl({value: this.output, disabled: this.readonly}));
         }
 

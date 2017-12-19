@@ -27,7 +27,7 @@ import {NewFileTabService} from "./new-file-tab.service";
                     <div class="text-title">Actions</div>
 
                     <div class="creation-entry p-1 mt-1 clickable deep-unselectable"
-                         data-test="create-workflow-btn"
+                         data-test="create-workflow-button"
                          (click)="openAppCreation('Workflow')">
 
                         <i class="fa fa-fw fa-share-alt fa-3x float-sm-left pl-1"></i>
@@ -37,12 +37,21 @@ import {NewFileTabService} from "./new-file-tab.service";
                         </div>
                     </div>
 
-                    <div class="creation-entry p-1 mt-1 clickable deep-unselectable" data-test="create-tool-btn"
+                    <div class="creation-entry p-1 mt-1 clickable deep-unselectable" data-test="create-tool-button"
                          (click)="openAppCreation('CommandLineTool')">
                         <i class="fa fa-fw fa-terminal fa-3x float-sm-left pr-1"></i>
                         <div class="content float-sm-left">
                             <div class="title text-title">New Command Line Tool</div>
                             <div class="description">Tools are programs for processing data.</div>
+                        </div>
+                    </div>
+
+                    <div class="creation-entry p-1 mt-1 clickable deep-unselectable" data-test="create-tool-button"
+                         (click)="openAppCreation('Code')">
+                        <i class="fa fa-fw fa-file fa-3x float-sm-left pr-1"></i>
+                        <div class="content float-sm-left">
+                            <div class="title text-title">New Text File</div>
+                            <div class="description">Create a text file or script for use by a Tool.</div>
                         </div>
                     </div>
                 </div>
@@ -91,10 +100,15 @@ export class NewFileTabComponent extends DirectiveBase {
         this.workbox.openTab(tab);
     }
 
-    openAppCreation(type: "Workflow" | "CommandLineTool") {
-        this.modal.fromComponent(CreateAppModalComponent, `Create a new ${type}`, {
+    openAppCreation(type: "Workflow" | "CommandLineTool" | "Code") {
+        const displayname = {
+            Workflow: "Workflow",
+            CommandLineTool: "Command Line Tool",
+            Code: "Text File"
+        };
+
+       this.modal.fromComponent(CreateAppModalComponent, `Create a new ${displayname[type]}`, {
             appType: type
         });
     }
 }
-
