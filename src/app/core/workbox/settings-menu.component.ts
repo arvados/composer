@@ -18,9 +18,9 @@ import {WorkboxService} from "./workbox.service";
         <ct-generic-dropdown-menu [ct-menu]="menu" menuAlign="left"
                                   [class.update-available]="global.platformIsOutdated" #settingsDropDown>
 
-            <button type="button" 
-                    class="btn btn-unstyled" 
-                    data-test="settings-menu-button" 
+            <button type="button"
+                    class="btn btn-unstyled"
+                    data-test="settings-menu-button"
                     (click)="settingsDropDown.toggleMenu()">
                 <span *ngIf="active">{{ userLabel }}</span>
                 <i class="fa fa-chevron-down fa-fw settings-icon"> </i>
@@ -32,7 +32,7 @@ import {WorkboxService} from "./workbox.service";
             <ul class="list-unstyled" (click)="settingsDropDown.hide()">
                 <li *ngFor="let c of credentials | async" (click)="setActiveUser(c)">
                     <span>
-                        {{ c.user.username }} 
+                        {{ c.user.username }}
                         <i *ngIf="active?.equals(c)" class="active-icon fa fa-check-circle"></i>
                     </span>
                     <span class="text-muted d-block small">{{ getPlatformLabel(c.url) }}</span>

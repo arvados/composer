@@ -10,7 +10,7 @@
     .generic-menu {
         z-index: 1000;
         position: absolute;
-        background: #333333;
+        background: #eeeeee;
         border: 1px solid $black;
         border-radius: $border-radius;
         box-shadow: 0 0 6px 2px rgba(0, 0, 0, 0.2);
@@ -43,7 +43,7 @@
         }
 
         &:hover {
-            background: $gray;
+            background: $white;
         }
 
         &.active {
@@ -51,4 +51,3 @@
         }
     }
 }
-

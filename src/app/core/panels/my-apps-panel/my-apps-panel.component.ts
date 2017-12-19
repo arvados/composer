@@ -22,6 +22,7 @@ import {NavSearchResultComponent} from "../nav-search-result/nav-search-result.c
 import {MyAppsPanelService} from "./my-apps-panel.service";
 import {ArvadosAppsPanelService} from "./arvados-apps-panel.service";
 import {LocalRepositoryService} from "../../../repository/local-repository.service";
+import { ConfigurationService } from "../../../app.config";
 
 @Component({
     selector: "ct-my-apps-panel",
@@ -51,6 +52,8 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
     @ViewChildren(NavSearchResultComponent, {read: ElementRef})
     private searchResultComponents: QueryList<ElementRef>;
 
+    private workbenchUrl: string;
+
     constructor(private cdr: ChangeDetectorRef,
                 private workbox: WorkboxService,
                 private modal: ModalService,
@@ -59,9 +62,13 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
                 private platformRepository: PlatformRepositoryService,
                 private service: MyAppsPanelService,
                 private native: NativeSystemService,
-                private context: ContextService) {
+                private context: ContextService,
+                private _config: ConfigurationService) {
         super();
 
+        this._config.discoveryDoc.take(1).subscribe((conf) => {
+            this.workbenchUrl = conf["workbenchUrl"];
+        };
     }
 
     ngAfterContentInit() {

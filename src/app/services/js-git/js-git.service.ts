@@ -17,7 +17,11 @@ export class JSGitService {
 
     constructor(private auth: AuthService, private _http: Http) {
         this.auth.getActive().subscribe((active) => {
-            this.userToken = active.token;
+            if (active) {
+                this.userToken = active.token;
+            } else {
+                this.userToken = ""
+            }
         });
     }
 

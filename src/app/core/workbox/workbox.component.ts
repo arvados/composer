@@ -139,9 +139,8 @@ import {environment} from '../../../environments/environment';
                 </li>
 
             </ul>
-
+            <!-- <ct-settings-menu></ct-settings-menu>-->
             <logout *ngIf="isBrowser"></logout>
-            <ct-settings-menu></ct-settings-menu>
         </div>
 
         <div class="body">

@@ -103,8 +103,12 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                                     } else {
                                         // file
                                         pending.push(self._jsgit.getFileContent(key).map((content) => {
-                                            const parsed = yaml.safeLoad(content);
-                                            const cwltype = parsed ? parsed["class"] : "";
+                                            let parsed;
+                                            try {
+                                                parsed = yaml.safeLoad(content);
+                                            } catch (e) {
+                                            }
+                                            let cwltype = parsed ? parsed["class"] : "";
 
                                             let icon;
                                             if (cwltype === "Workflow") {
