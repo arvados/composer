@@ -24,7 +24,7 @@ export class LogoutComponent {
         this._config.discoveryDoc.take(1).subscribe((conf) => {
             this._authService.setActiveCredentials(null);
             window.location.href = conf["workbenchUrl"] + "/logout";
-        };
+        });
     }
 
 }

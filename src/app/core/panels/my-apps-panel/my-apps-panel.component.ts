@@ -68,7 +68,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
 
         this._config.discoveryDoc.take(1).subscribe((conf) => {
             this.workbenchUrl = conf["workbenchUrl"];
-        };
+        });
     }
 
     ngAfterContentInit() {
