@@ -19,7 +19,7 @@ import {Component, Input} from "@angular/core";
                 </button>
 
                 <!--Resolve-->
-                <button class="btn control-button"
+                <!--<button class="btn control-button"
                         type="button"
                         [disabled]="!host.appIsResolvable()"
                         *ngIf="host.viewMode === 'code' && host.tabData.dataSource === 'local'"
@@ -27,7 +27,7 @@ import {Component, Input} from "@angular/core";
                         tooltipPlacement="bottom"
                         (click)="host.resolveCurrentContent()">
                     <i class="fa fa-fw fa-refresh"></i>
-                </button>
+                </button>-->
 
                 <!--Go to app-->
                 <button class="btn control-button"
@@ -40,6 +40,15 @@ import {Component, Input} from "@angular/core";
                     <i class="fa fa-fw fa-external-link"></i>
                 </button>
 
+                <!--Run-->
+                <button type="button" class="btn control-button"
+                        *ngIf="!host.isExecuting"
+                        [disabled]="!host.appIsRunnable()"
+                        ct-tooltip="Run in Arvados"
+                        tooltipPlacement="bottom"
+                        (click)="host.scheduleExecution()">
+                    <i class="fa fa-fw fa-play"></i>
+                </button>
 
                 <!--Save-->
                 <button *ngIf="host.tabData.isWritable"
@@ -52,19 +61,19 @@ import {Component, Input} from "@angular/core";
                     <i class="fa fa-fw fa-save"></i>
                 </button>
 
-                <button type="button" class="btn control-button" ct-tooltip="Export App" tooltipPlacement="bottom" (click)="host.exportApp()">
+                <!--<button type="button" class="btn control-button" ct-tooltip="Export App" tooltipPlacement="bottom" (click)="host.exportApp()">
                     <i class="fa fa-fw fa-upload"></i>
-                </button>
+                </button>-->
 
                 <!--Push to Platform-->
-                <button class="btn control-button" data-test="publish-button"
+                <!--<button class="btn control-button" data-test="publish-button"
                         [disabled]="!host.appIsPublishable()"
                         *ngIf="host.tabData.dataSource === 'local'"
                         ct-tooltip="Push to Platform"
                         tooltipPlacement="bottom"
                         (click)="host.publish()">
                     <i class="fa fa-fw fa-cloud-upload"></i>
-                </button>
+                </button>-->
 
 
                 <!--Revisions-->
@@ -93,13 +102,13 @@ import {Component, Input} from "@angular/core";
 
             <ng-template #testControls>
 
-                <button type="button" class="btn control-button" ct-tooltip="Import Job" tooltipPlacement="bottom" (click)="host.importJob()">
+                <!--<button type="button" class="btn control-button" ct-tooltip="Import Job" tooltipPlacement="bottom" (click)="host.importJob()">
                     <i class="fa fa-fw fa-download"></i>
                 </button>
-                
+
                 <button type="button" class="btn control-button" ct-tooltip="Export Job" tooltipPlacement="bottom" (click)="host.exportJob()">
                     <i class="fa fa-fw fa-upload"></i>
-                </button>
+                </button>-->
 
                 <!--Run-->
                 <button type="button" class="btn btn-primary"

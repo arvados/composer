@@ -7,7 +7,7 @@ import {DirectiveBase} from "../../../util/directive-base/directive-base";
     template: `
         <ct-tab-selector distribute="equal" [active]="activeTab" (activeChange)="changeTab($event)">
             <ct-tab-selector-entry [tabName]="'myApps'" data-test="my-projects-tab">My Projects</ct-tab-selector-entry>
-            <ct-tab-selector-entry [tabName]="'publicApps'" data-test="public-apps-tab">Public Apps</ct-tab-selector-entry>
+            <!--<ct-tab-selector-entry [tabName]="'publicApps'" data-test="public-apps-tab">Public Apps</ct-tab-selector-entry>-->
         </ct-tab-selector>
 
         <div class="panel-container" [class.hidden]="activeTab !== 'myApps'">
