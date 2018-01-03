@@ -421,7 +421,10 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
             dump = YAML.dump(app);
         }
 
-        const adjustedsubdir = "/" + subdir.match(/^\/?(.*?)\/?$/)[1] + "/";
+        let adjustedsubdir = "/" + subdir.match(/^\/?(.*?)\/?$/)[1] + "/";
+	if (adjustedsubdir == "//") {
+	    adjustedsubdir = "/";
+	}
 
         const path = repo + "#" + adjustedsubdir + fileBasename;
 

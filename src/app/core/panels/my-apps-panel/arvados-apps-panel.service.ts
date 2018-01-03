@@ -81,9 +81,24 @@ export class ArvadosAppsPanelService extends AppsPanelService {
 
                         const repoUrl = item["url"];
                         self._jsgit.getRepoContents(repoUrl).subscribe((dirents) => {
-
                             function load_dir(dirname: string): Observable<TreeNode<any>[]> {
                                 const pending = [];
+				console.log("dirname "+dirname);
+
+				if (dirname === "/" && Object.keys(dirents[dirname].body).length === 0) {
+				    pending.push(Observable.of({
+					id: "empty",
+					data: null,
+					type: "loading",
+					label: "(empty)",
+					isExpandable: false,
+					isExpanded: Observable.of(false),
+					icon: "",
+					iconExpanded: "",
+					children: Observable.empty()
+				    }));
+				}
+
                                 for (const filename in dirents[dirname].body) {
                                     const ent = dirents[dirname].body[filename];
                                     const key = repoUrl+"#"+dirname+filename;

@@ -272,6 +272,7 @@ export class WorkboxService {
         const label      = AppHelper.getBasename(data.id);
         const isWritable = data.isWritable;
 
+	console.log("id is "+data.id);
 
         const fileContent = Observable.of(1).switchMap(() => {
             if (dataSource === "local") {

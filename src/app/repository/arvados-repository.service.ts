@@ -68,11 +68,18 @@ export class ArvadosRepositoryService {
             console.log("using token "+ this.getToken("api_token"));
             _config.configuration.subscribe((conf) => {
                 const token = this.getToken("api_token");
-                this.setActiveCredentials(new AuthCredentials(conf['apiEndPoint']+"/0123456789abcd", token, {
-                    username: "username"
-                }));
                 const headers = new Headers({ "Authorization": "OAuth2 " + token });
+		const apiEndPoint = conf['apiEndPoint'];
                 this.httpOptions = new RequestOptions({ "headers": headers });
+		this._http.get(apiEndPoint+"/arvados/v1/users/current", this.httpOptions).subscribe(response => {
+		    const u = response.json();
+                    this.setActiveCredentials(new AuthCredentials(conf['apiEndPoint']+"/0123456789abcd", token, {
+			username: u["username"],
+			first_name: u["first_name"],
+			last_name: u["last_name"],
+			email: u["email"]
+                    }));
+		});
             });
         } else {
             this.setActiveCredentials(null);

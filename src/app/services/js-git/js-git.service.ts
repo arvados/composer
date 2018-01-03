@@ -9,8 +9,7 @@ import {AuthService} from "../../auth/auth.service"
 
 @Injectable()
 export class JSGitService {
-    private userName = "none";
-    private userToken;
+    private userCred;
     private headers;
     private httpOptions;
     private repo = {};
@@ -18,27 +17,27 @@ export class JSGitService {
     constructor(private auth: AuthService, private _http: Http) {
         this.auth.getActive().subscribe((active) => {
             if (active) {
-                this.userToken = active.token;
+		this.userCred = active;
             } else {
-                this.userToken = ""
+                this.userCred = null;
             }
         });
     }
 
     private createRepo(repoUrl: string): Observable<any> {
         const repoObj = {};
-        HighLevel(repoObj, this.userName, this.userToken, repoUrl);
+        HighLevel(repoObj, this.userCred.user.username, this.userCred.token, repoUrl);
 
         repoObj["contents"] = new ReplaySubject(1);
         this.repo[repoUrl] = repoObj;
 
-        this.repo[repoUrl]["clone"]((data) => {
+	this.repo[repoUrl]["clone"]('refs/heads/master', (data) => {
 
+	    console.log(data);
             if (!data) {
                 return;
             }
-
-            repoObj["resolveRepo"]((res) => {
+            repoObj["resolveRepo"]('refs/heads/master', (res) => {
                 console.log(res);
                 repoObj["contents"].next(res);
             });
@@ -55,7 +54,10 @@ export class JSGitService {
         const sp = JSGitService.splitFileKey(fileKey);
         const repo = this.repo[sp.repoUrl];
         return repo["contents"].flatMap((contents) => {
+	    console.log("contents "+sp.path);
+	    console.log(contents);
             const filehash = contents[sp.path].hash;
+	    console.log("yearg");
             return Observable.create((observer) => {
                 repo["getContentByHash"](filehash, (content) => {
                     observer.next(content);
@@ -96,7 +98,7 @@ export class JSGitService {
         });
     }
 
-    public saveToGitRepo(fileKey: string, content: string) {
+    public saveToGitRepo(fileKey: string, content: string): Observable<Object> {
         const self = this;
         const sp = JSGitService.splitFileKey(fileKey);
         const repoObj = this.repo[sp.repoUrl];
@@ -112,16 +114,23 @@ export class JSGitService {
                 content
             };
             const dataForCommit = [fileToCommit];
-            repoObj["commit"](dataForCommit, "commit message", (feedback) => {
-                repoObj["push"]((feedback) => {
-                    console.log(feedback);
-                    observer.next(content);
-                    observer.complete();
-                });
-                repoObj["resolveRepo"]((res) => {
+	    const metadata = {
+		message: "commit message goes here",
+		author: {
+		    name: this.userCred.user.first_name + " " + this.userCred.user.last_name,
+		    email: this.userCred.user.email
+		}
+	    };
+            repoObj["commit"]('refs/heads/master', dataForCommit, metadata, (feedback) => {
+                repoObj["resolveRepo"]('refs/heads/master', (res) => {
                     repoObj["contents"].next(res);
+                    repoObj["push"]('refs/heads/master', (feedback) => {
+			console.log(feedback);
+			observer.next(content);
+			observer.complete();
+                    });
                 });
             });
-        });
+        }).share();
     }
 }

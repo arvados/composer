@@ -19,6 +19,7 @@ import {GraphJobEditorComponent} from "../editor-common/graph-job-editor/graph-j
 import {EditorInspectorService} from "../editor-common/inspector/editor-inspector.service";
 import {APP_SAVER_TOKEN} from "../editor-common/services/app-saving/app-saver.interface";
 import {LocalFileSavingService} from "../editor-common/services/app-saving/local-file-saving.service";
+import {ArvadosAppSavingService} from "../editor-common/services/app-saving/arvados-app-saving.service";
 import {PlatformAppSavingService} from "../editor-common/services/app-saving/platform-app-saving.service";
 import {ExecutorService} from "../executor/executor.service";
 import {NotificationBarService} from "../layout/notification-bar/notification-bar.service";
@@ -28,11 +29,17 @@ import {PlatformRepositoryService} from "../repository/platform-repository.servi
 import {IpcService} from "../services/ipc.service";
 import {ModalService} from "../ui/modal/modal.service";
 import {Subscription} from "rxjs/Subscription";
+import {environment} from './../../environments/environment';
+import {JSGitService} from './../services/js-git/js-git.service';
 
-export function appSaverFactory(comp: ToolEditorComponent, ipc: IpcService, modal: ModalService, platformRepository: PlatformRepositoryService) {
+export function appSaverFactory(comp: ToolEditorComponent, ipc: IpcService, modal: ModalService, platformRepository: PlatformRepositoryService, jsgit: JSGitService) {
 
     if (comp.tabData.dataSource === "local") {
-        return new LocalFileSavingService(ipc);
+        if (environment.browser) {
+            return new ArvadosAppSavingService(jsgit);
+        } else {
+            return new LocalFileSavingService(ipc);
+        }
     }
 
     return new PlatformAppSavingService(platformRepository, modal);
@@ -49,7 +56,7 @@ export function appSaverFactory(comp: ToolEditorComponent, ipc: IpcService, moda
         {
             provide: APP_SAVER_TOKEN,
             useFactory: appSaverFactory,
-            deps: [ToolEditorComponent, IpcService, ModalService, PlatformRepositoryService]
+            deps: [ToolEditorComponent, IpcService, ModalService, PlatformRepositoryService, JSGitService]
         }, {
             provide: APP_META_MANAGER,
             useFactory: appMetaManagerFactory,
