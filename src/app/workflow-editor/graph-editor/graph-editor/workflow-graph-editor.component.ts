@@ -328,13 +328,20 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
      * Triggers when app is dropped on canvas
      */
     onDrop(ev: MouseEvent, nodeData: {name: string, type: "cwl" | "directory" | "file"}) {
+	console.log("got drop event");
+
         if (this.readonly || nodeData.type !== "cwl") {
             return;
         }
 
         const statusProcess = this.statusBar.startProcess(`Adding ${nodeData.name} to Workflow...`);
 
-        const isLocal = AppHelper.isLocal(nodeData.name);
+        //const isLocal = AppHelper.isLocal(nodeData.name);
+	const isLocal = true;
+
+	console.log("fetching? "+isLocal);
+	console.log(nodeData);
+	console.log(this.fileRepository);
 
         const fetch: Promise<string> = isLocal
             ? this.fileRepository.fetchFile(nodeData.name)
@@ -367,6 +374,8 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
                     "sbg:x": coords.x,
                     "sbg:y": coords.y
                 });
+		console.log("addStepFromProcess");
+		console.log(patched);
 
                 const step = this.model.addStepFromProcess(patched);
 

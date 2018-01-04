@@ -35,6 +35,7 @@ import {LoginComponent} from "./login/login.component";
 import {environment} from './../environments/environment';
 import {CookieModule} from 'ngx-cookie';
 import {JSGitService} from "./services/js-git/js-git.service";
+import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver.service"
 
 @NgModule({
     providers: [
@@ -54,6 +55,7 @@ import {JSGitService} from "./services/js-git/js-git.service";
 
         ArvadosRepositoryService,
         ArvadosFileRepositoryService,
+	SchemaSaladResolver,
         {
             provide: FileRepositoryService,
             useClass: ArvadosFileRepositoryService
