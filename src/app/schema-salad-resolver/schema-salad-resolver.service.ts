@@ -37,8 +37,6 @@ export class SchemaSaladResolver {
 
 		const entry = data[key];
 
-		console.log("hello hello "+key+" "+entry);
-
 		const isExternalResource = typeof entry === "string" && [
                     "run",
                     "$mixin",
@@ -100,12 +98,9 @@ export class SchemaSaladResolver {
 
 			traversed.add(externalPath);
 
-			console.log("calling resolve "+externalPath);
 			this.resolve(externalPath, {
                             type: key === "$include" ? "text" : "json"
 			}, rootPath, traversed).then((content) => {
-			    console.log("got content "+content);
-
                             switch (key) {
 
                             case "$import":
@@ -220,10 +215,7 @@ export class SchemaSaladResolver {
                   resolve(data);
                   });
 		  }*/
-		console.log("wheee "+filename);
 		this.fileRepo.fetchFile(filename).then((data) => {
-		    console.log("wheee2");
-		    console.log(data);
 		    resolve(data);
 		});
             });
