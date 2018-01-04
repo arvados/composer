@@ -48,7 +48,6 @@ export class ArvExecutorService {
         const self = this;
 
         return self.jsgit.getRepoHead(sp.repoUrl, 'master').flatMap((commithash) => {
-            console.log("tell me 1");
             const input_defaults = {};
             for (var i in model["inputs"]) {
                 var input = model["inputs"][i];
@@ -63,7 +62,6 @@ export class ArvExecutorService {
                     input_defaults[shortid] = input["default"]
                 }
             }
-            console.log("tell me 2");
             var body = {
                 container_request: {
                     name: sp.path,

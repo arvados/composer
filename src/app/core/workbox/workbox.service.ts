@@ -40,8 +40,6 @@ export class WorkboxService {
             .switchMap(() => this.getStoredTabs().take(1))
             // If we have no active tabs, add a "new file"
             .map(tabDataList => {
-                console.log("tabDataList");
-                console.log(tabDataList);
                 return tabDataList.length ? tabDataList : [this.homeTabData]
                 })
             .map(tabDataList => tabDataList.map(tabData => {

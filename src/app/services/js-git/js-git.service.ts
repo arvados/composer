@@ -31,7 +31,7 @@ export class JSGitService {
         repoObj["contents"] = new ReplaySubject(1);
         this.repo[repoUrl] = repoObj;
 
-	this.repo[repoUrl]["clone"]('refs/heads/master', (data) => {
+	this.repo[repoUrl]["clone"]('refs/heads/master', 1, (data) => {
 
 	    console.log(data);
             if (!data) {
@@ -54,10 +54,7 @@ export class JSGitService {
         const sp = JSGitService.splitFileKey(fileKey);
         const repo = this.repo[sp.repoUrl];
         return repo["contents"].flatMap((contents) => {
-	    console.log("contents "+sp.path);
-	    console.log(contents);
             const filehash = contents[sp.path].hash;
-	    console.log("yearg");
             return Observable.create((observer) => {
                 repo["getContentByHash"](filehash, (content) => {
                     observer.next(content);

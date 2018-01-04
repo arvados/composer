@@ -17,7 +17,6 @@ export class AuthService {
             this.registry.getCredentials(),
             this.registry.getActiveCredentials(),
             (all, active) => {
-                console.log("combined and stuff");
                 if (!active) {
                     return undefined;
                 }
@@ -33,7 +32,6 @@ export class AuthService {
     }
 
     getActive(): ReplaySubject<AuthCredentials | undefined> {
-        console.log("get active");
         return this.active;
     }
 
