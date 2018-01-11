@@ -152,7 +152,7 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                                                 children: Observable.empty(),
 						dragEnabled: (cwltype === "Workflow" || cwltype === "CommandLineTool"),
 						dragTransferData: {name: key, type: "cwl"},
-						dragDropZones: ["graph-editor"]
+						dragDropZones: ["graph-editor"],
 						dragLabel: filename,
 						dragImageClass: cwltype === "CommandLineTool" ? "icon-command-line-tool" : "icon-workflow",
                                             };
