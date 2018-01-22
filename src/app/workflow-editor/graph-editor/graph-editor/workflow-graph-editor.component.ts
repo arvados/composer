@@ -333,20 +333,20 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
         }
 
         //const isLocal = AppHelper.isLocal(nodeData.name);
-	const isLocal = true;
+        const isLocal = true;
 
-	let fetch: Promise<string>;
-	if (nodeData.name.substr(0, nodeData.name.indexOf("#")) != this.data.id.substr(0, this.data.id.indexOf("#"))) {
-	    this.notificationBar.showNotification(`Cannot add tool from different repository.`);
-	    return;
-	} else if (nodeData.name === this.data.id) {
-	    this.notificationBar.showNotification(`Cannot add a workflow to itself.`);
-	    return;
-	} else {
+        let fetch: Promise<string>;
+        if (nodeData.name.substr(0, nodeData.name.indexOf("#")) != this.data.id.substr(0, this.data.id.indexOf("#"))) {
+            this.notificationBar.showNotification(`Cannot add tool from different repository.`);
+            return;
+        } else if (nodeData.name === this.data.id) {
+            this.notificationBar.showNotification(`Cannot add a workflow to itself.`);
+            return;
+        } else {
             fetch = isLocal
-		? this.fileRepository.fetchFile(nodeData.name)
-		: this.platformRepository.getApp(nodeData.name).then(app => JSON.stringify(app));
-	}
+                ? this.fileRepository.fetchFile(nodeData.name)
+                : this.platformRepository.getApp(nodeData.name).then(app => JSON.stringify(app));
+        }
 
         const statusProcess = this.statusBar.startProcess(`Adding ${nodeData.name} to Workflow...`);
 
@@ -377,8 +377,8 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
                     "sbg:x": coords.x,
                     "sbg:y": coords.y
                 });
-		console.log("addStepFromProcess");
-		console.log(patched);
+                console.log("addStepFromProcess");
+                console.log(patched);
 
                 const step = this.model.addStepFromProcess(patched);
 
