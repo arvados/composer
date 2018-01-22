@@ -339,6 +339,9 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
 	if (nodeData.name.substr(0, nodeData.name.indexOf("#")) != this.data.id.substr(0, this.data.id.indexOf("#"))) {
 	    this.notificationBar.showNotification(`Cannot add tool from different repository.`);
 	    return;
+	} else if (nodeData.name === this.data.id) {
+	    this.notificationBar.showNotification(`Cannot add a workflow to itself.`);
+	    return;
 	} else {
             fetch = isLocal
 		? this.fileRepository.fetchFile(nodeData.name)
