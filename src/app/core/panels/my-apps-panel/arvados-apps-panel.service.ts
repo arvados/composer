@@ -149,7 +149,12 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                                                 isExpanded: Observable.of(false),
                                                 icon,
                                                 iconExpanded: "",
-                                                children: Observable.empty()
+                                                children: Observable.empty(),
+						dragEnabled: (cwltype === "Workflow" || cwltype === "CommandLineTool"),
+						dragTransferData: {name: key, type: "cwl"},
+						dragDropZones: ["graph-editor"],
+						dragLabel: filename,
+						dragImageClass: cwltype === "CommandLineTool" ? "icon-command-line-tool" : "icon-workflow",
                                             };
                                         }).take(1));
                                     }

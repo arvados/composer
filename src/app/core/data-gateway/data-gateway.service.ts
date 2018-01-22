@@ -6,6 +6,7 @@ import {noop} from "../../lib/utils.lib";
 import {PlatformRepositoryService} from "../../repository/platform-repository.service";
 import {LocalRepositoryService} from "../../repository/local-repository.service";
 import {IpcService} from "../../services/ipc.service";
+import {SchemaSaladResolver} from "../../schema-salad-resolver/schema-salad-resolver.service";
 import {AppHelper} from "../helpers/AppHelper";
 import {environment} from './../../../environments/environment';
 
@@ -30,7 +31,8 @@ export class DataGatewayService {
 
     constructor(private ipc: IpcService,
                 private platformRepository: PlatformRepositoryService,
-                private localRepository: LocalRepositoryService) {
+                private localRepository: LocalRepositoryService,
+		private resolver: SchemaSaladResolver) {
     }
 
     checkIfPathExists(path) {
@@ -59,6 +61,7 @@ export class DataGatewayService {
 
     fetchFileContent(almostID: string, parse = false): Observable<string> {
 
+	console.log("fetching");
         const source = DataGatewayService.getFileSource(almostID);
 
         if (source === "local") {
@@ -93,11 +96,14 @@ export class DataGatewayService {
     }
 
     resolveContent(content, path): Observable<Object | any> {
-        if (AppHelper.isLocal(path)) {
-            return this.ipc.request("resolveContent", ({content, path})).take(1);
-        }
+	console.log("here! resolveContent");
+	return Observable.fromPromise(this.resolver.resolveContent(content, path));
 
-        return Observable.of(content).map(txt => YAML.safeLoad(txt, {json: true} as any));
+        //if (AppHelper.isLocal(path)) {
+        //return this.ipc.request("resolveContent", ({content, path})).take(1);
+        //}
+
+        //return Observable.of(content).map(txt => YAML.safeLoad(txt, {json: true} as any));
     }
 
 
