@@ -32,6 +32,7 @@ import {Component, Input} from "@angular/core";
                 -->
 
                 <!--Go to app-->
+                <!--
                 <button class="btn control-button"
                         type="button"
                         [disabled]="host.dataModel === undefined"
@@ -41,6 +42,7 @@ import {Component, Input} from "@angular/core";
                         (click)="host.openOnPlatform(host.dataModel.sbgId)">
                     <i class="fa fa-fw fa-external-link"></i>
                 </button>
+                -->
 
                 <!--Run-->
                 <button type="button" class="btn control-button"
@@ -50,6 +52,7 @@ import {Component, Input} from "@angular/core";
                         tooltipPlacement="bottom"
                         (click)="host.scheduleExecution()">
                     <i class="fa fa-fw fa-play"></i>
+                </button>
 
                 <!--Push to Platform-->
                 <!--
