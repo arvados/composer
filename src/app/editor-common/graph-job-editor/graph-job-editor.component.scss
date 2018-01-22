@@ -12,12 +12,6 @@
     );
 
     /deep/ {
-        @import "../../../assets/sass/variables";
-        @import "~cwl-svg/src/assets/styles/variables";
-        @import "~cwl-svg/src/assets/styles/style";
-        @import "~cwl-svg/src/plugins/port-drag/port-drag";
-        @import "~cwl-svg/src/plugins/validate/validate";
-        @import "~cwl-svg/src/plugins/selection/selection";
         @import "../../workflow-editor/svg-plugins/job-file-drop/job-file-drop";
         @import "../../workflow-editor/svg-plugins/required-input-markup/required-input-markup";
     }

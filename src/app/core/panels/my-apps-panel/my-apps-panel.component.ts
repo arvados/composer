@@ -23,6 +23,8 @@ import {MyAppsPanelService} from "./my-apps-panel.service";
 import {ArvadosAppsPanelService} from "./arvados-apps-panel.service";
 import {LocalRepositoryService} from "../../../repository/local-repository.service";
 import { ConfigurationService } from "../../../app.config";
+import {FileRepositoryService} from "../../../file-repository/file-repository.service";
+
 
 @Component({
     selector: "ct-my-apps-panel",
@@ -58,6 +60,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
                 private workbox: WorkboxService,
                 private modal: ModalService,
                 private dataGateway: DataGatewayService,
+                private fileRepository: FileRepositoryService,
                 private localRepository: LocalRepositoryService,
                 private platformRepository: PlatformRepositoryService,
                 private service: MyAppsPanelService,
@@ -104,6 +107,19 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
 
         const tab = this.workbox.getOrCreateAppTab(entry.tabData);
         this.workbox.openTab(tab);
+    }
+
+    syncFileTree() {
+        this.service.localFolders.subscribeTracked(this, (folders) => {
+            folders.forEach((folder) => {
+                this.fileRepository.reloadPath(folder);
+            });
+        });
+        this.localRepository.getActiveCredentials().take(1).subscribeTracked(this, (creds) => {
+            if (creds) {
+                this.service.reloadPlatformData();
+            }
+        });
     }
 
     private attachSearchObserver() {
@@ -377,14 +393,6 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
                 createAppMenuItem(data.node, "local", "CommandLineTool"),
                 createExploreMenuItem(data.node),
                 createFolderMenuItem(data.node),
-            ];
-
-            this.context.showAt(data.node.getViewContainer(), contextMenu, data.coordinates);
-        });
-
-        platformApp.subscribeTracked(this, (data) => {
-            const contextMenu = [
-                this.service.makeCopyAppToLocalMenuItem(data.node),
             ];
 
             this.context.showAt(data.node.getViewContainer(), contextMenu, data.coordinates);

@@ -25,6 +25,9 @@ import {WorkflowGraphEditorComponent} from "./graph-editor/graph-editor/workflow
 import {WorkflowEditorService} from "./workflow-editor.service";
 import {environment} from './../../environments/environment';
 import {JSGitService} from './../services/js-git/js-git.service';
+import {FileRepositoryService} from "../file-repository/file-repository.service";
+import {ExportAppService} from "../services/export-app/export-app.service";
+import {HintsModalComponent} from "../core/modals/hints-modal/hints-modal.component";
 
 export function appSaverFactory(comp: WorkflowEditorComponent,
                                 ipc: IpcService,
@@ -81,7 +84,9 @@ export class WorkflowEditorComponent extends AppEditorBase implements OnDestroy,
                 protected cdr: ChangeDetectorRef,
                 platformAppService: PlatformAppService,
                 localRepository: LocalRepositoryService,
+                fileRepository: FileRepositoryService,
                 workbox: WorkboxService,
+                exportApp: ExportAppService,
                 executorService: ExecutorService) {
         super(
             statusBar,
@@ -95,7 +100,9 @@ export class WorkflowEditorComponent extends AppEditorBase implements OnDestroy,
             platformAppService,
             platformRepository,
             localRepository,
+            fileRepository,
             workbox,
+            exportApp,
             executorService
         );
 
@@ -165,5 +172,16 @@ export class WorkflowEditorComponent extends AppEditorBase implements OnDestroy,
         while (this.graphDrawQueue.length) {
             this.graphDrawQueue.shift()();
         }
+    }
+
+    setHints() {
+        const hints = this.modal.fromComponent(HintsModalComponent, {
+            title: "Set Hints",
+            backdrop: true,
+            closeOnEscape: true
+        });
+
+        hints.model = this.dataModel;
+        hints.readonly = this.isReadonly;
     }
 }

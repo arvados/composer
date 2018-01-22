@@ -40,7 +40,7 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                 protected platformRepository: PlatformRepositoryService,
                 private _jsgit: JSGitService) {
 
-        super(fileRepository, platformRepository, notificationBar, workbox, statusBar, cdr);
+        super(fileRepository, platformRepository, notificationBar, workbox, statusBar, cdr, null);
 
         this.expandedNodes      = this.arvRepository.getExpandedNodes();
         this.rootFolders        = this.getRootFolders();

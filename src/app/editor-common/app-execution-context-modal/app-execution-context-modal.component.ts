@@ -10,13 +10,15 @@ if ( ! environment.browser ) {
     const {dialog} = window["require"]("electron").remote;
 }
 
+import {NativeSystemService} from "../../native/system/native-system.service";
+
 @Component({
     selector: "ct-app-execution-context-modal",
     template: `
         <form [formGroup]="form" (submit)="onSubmit(form.getRawValue())">
 
             <div class="p-1">
-                
+
                 <div formGroupName="executionParams">
 
                     <!--Configuration Directory-->
@@ -98,7 +100,7 @@ export class AppExecutionContextModalComponent implements OnInit {
     jobPathInput: ElementRef;
 
 
-    constructor(private fb: FormBuilder, private modal: ModalService) {
+    constructor(private fb: FormBuilder, private modal: ModalService, private native: NativeSystemService) {
     }
 
     ngOnInit() {
@@ -138,31 +140,30 @@ export class AppExecutionContextModalComponent implements OnInit {
     }
 
     browseJobFile() {
-        dialog.showOpenDialog({
+        this.native.openFileChoiceDialog({
 
             title: "Choose a Job File",
             defaultPath: this.appID,
             buttonLabel: "Done",
 
-        }, (path) => {
+        }).then((path) => {
             if (!path || path.length === 0) {
                 return;
             }
 
             this.form.get("jobPath").patchValue(path[0]);
-        });
+        }, () => {});
     }
 
     browseFolder(formFieldName: string) {
 
-
-        dialog.showOpenDialog({
+        this.native.openFolderChoiceDialog({
             properties: ["openDirectory"],
             title: "Choose a Folder",
             defaultPath: this.appID,
             buttonLabel: "Done",
 
-        }, (path) => {
+        }).then((path) => {
             if (!path || path.length === 0) {
                 return;
             }

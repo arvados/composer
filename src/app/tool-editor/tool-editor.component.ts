@@ -1,4 +1,4 @@
-import {Component, Injector, OnInit} from "@angular/core";
+import {Component, EventEmitter, Injector, OnInit} from "@angular/core";
 import {FormGroup} from "@angular/forms";
 import {CommandLineToolModel, isType, WorkflowFactory, WorkflowModel, WorkflowStepInputModel, WorkflowStepOutputModel} from "cwlts/models";
 import {CommandLineToolFactory} from "cwlts/models/generic/CommandLineToolFactory";
@@ -28,9 +28,11 @@ import {LocalRepositoryService} from "../repository/local-repository.service";
 import {PlatformRepositoryService} from "../repository/platform-repository.service";
 import {IpcService} from "../services/ipc.service";
 import {ModalService} from "../ui/modal/modal.service";
+import {FileRepositoryService} from "../file-repository/file-repository.service";
 import {Subscription} from "rxjs/Subscription";
 import {environment} from './../../environments/environment';
 import {JSGitService} from './../services/js-git/js-git.service';
+import {ExportAppService} from "../services/export-app/export-app.service";
 
 export function appSaverFactory(comp: ToolEditorComponent, ipc: IpcService, modal: ModalService, platformRepository: PlatformRepositoryService, jsgit: JSGitService) {
 
@@ -88,7 +90,10 @@ export class ToolEditorComponent extends AppEditorBase implements OnInit {
 
     toolGroup: FormGroup;
 
+    dirty = new EventEmitter();
+
     jobSubscription: Subscription;
+
 
     constructor(statusBar: StatusBarService,
                 notificationBarService: NotificationBarService,
@@ -101,7 +106,9 @@ export class ToolEditorComponent extends AppEditorBase implements OnInit {
                 platformRepository: PlatformRepositoryService,
                 platformAppService: PlatformAppService,
                 localRepository: LocalRepositoryService,
+                fileRepository: FileRepositoryService,
                 workbox: WorkboxService,
+                exportApp: ExportAppService,
                 executor: ExecutorService) {
 
         super(
@@ -116,7 +123,9 @@ export class ToolEditorComponent extends AppEditorBase implements OnInit {
             platformAppService,
             platformRepository,
             localRepository,
+            fileRepository,
             workbox,
+            exportApp,
             executor,
         );
     }
@@ -124,10 +133,16 @@ export class ToolEditorComponent extends AppEditorBase implements OnInit {
     ngOnInit(): any {
         super.ngOnInit();
         this.toolGroup = new FormGroup({});
+
+        this.dirty.subscribeTracked(this, () => {
+            this.syncModelAndCode(false);
+        });
     }
 
     openRevision(revisionNumber: number | string) {
-        return super.openRevision(revisionNumber).then(() => this.toolGroup.reset());
+        return super.openRevision(revisionNumber).then(() => {
+            this.toolGroup.reset();
+        });
     }
 
     switchTab(tabName): void {
