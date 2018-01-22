@@ -33,6 +33,7 @@ import {DirectiveBase} from "../../../util/directive-base/directive-base";
             <div class="textarea-btn-group">
 
                     <textarea class="form-control"
+                              data-test="literal-expr-textarea"
                               #input
                               [readonly]="model?.isExpression"
                               (blur)="onTouch()"
@@ -44,11 +45,13 @@ import {DirectiveBase} from "../../../util/directive-base/directive-base";
                         <button type="button"
                                 (click)="openLiteralEditor()"
                                 [disabled]="model.isExpression"
+                                data-test="expand-literal-expr-button"
                                 class="btn btn-secondary">
                             <i class="fa fa-expand"></i>
                         </button>
                         <button type="button"
                                 class="btn btn-secondary"
+                                data-test="edit-literal-expr-button"
                                 [disabled]="readonly"
                                 (click)="editExpr(model?.isExpression ? 'clear' : 'edit', $event)">
                             <i class="fa"
@@ -169,16 +172,16 @@ export class LiteralExpressionInputComponent extends DirectiveBase implements Co
 
             editor.model   = this.model.clone();
             editor.context = this.context;
-            editor.action.first().subscribe(action => {
-                if (action === "save") {
-                    const val = editor.model.serialize();
+            editor.submit.first().subscribe(() => {
 
-                    if (!val) {
-                        editor.model.setValue("", "string");
-                    }
+                const val = editor.model.serialize();
 
-                    this.model.cloneStatus(editor.model);
+                if (!val) {
+                    editor.model.setValue("", "string");
                 }
+
+                this.model.cloneStatus(editor.model);
+
                 this.modal.close();
             });
         }

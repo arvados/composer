@@ -29,6 +29,7 @@ import {ModalService} from "./ui/modal/modal.service";
 import {UIModule} from "./ui/ui.module";
 import {WorkflowEditorModule} from "./workflow-editor/workflow-editor.module";
 import {OpenExternalFileService} from "./core/open-external-file/open-external-file.service";
+import {ExportAppService} from "./services/export-app/export-app.service";
 
 import {ConfigurationService} from "./app.config";
 import {LoginComponent} from "./login/login.component";
@@ -47,6 +48,7 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
         AuthService,
         DataGatewayService,
         DomEventService,
+        ExportAppService,
         FormBuilder,
         GlobalService,
         IpcWebService,

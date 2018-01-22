@@ -23,14 +23,16 @@ import {DirectiveBase} from "../../../util/directive-base/directive-base";
 
             <div *ngFor="let ctrl of controls.controls; let i = index" class="list-item">
 
-                <input class="form-control key-input" [formControl]="ctrl.get('key')" placeholder="key"/>
+                <input class="form-control key-input" [formControl]="ctrl.get('key')" data-test="key-field" placeholder="key"/>
 
                 <span class="input-group-addon add-on">:</span>
 
-                <input class="form-control value-input" [formControl]="ctrl.get('value')" placeholder="value"/>
+                <input class="form-control value-input" [formControl]="ctrl.get('value')" data-test="value-field" placeholder="value"/>
 
-                <div *ngIf="!readonly" class="remove-icon"
+                <div *ngIf="!readonly" 
+                     class="remove-icon"
                      ct-tooltip="Delete"
+                     data-test="remove-entry-button"
                      (click)="remove(i)">
                     <i class="fa fa-trash clickable"></i>
                 </div>
@@ -40,7 +42,8 @@ import {DirectiveBase} from "../../../util/directive-base/directive-base";
         </div>
 
         <button type="button" *ngIf="controls.length !== 0 && !readonly"
-                class="btn pl-0 btn-link no-outline no-underline-hover"
+                class="btn pl-0 btn-link no-outline no-underline-hover add-entry-btn"
+                data-test="add-entry-button"
                 (click)="add()">
             <i class="fa fa-plus"></i> Add an Entry
         </button>
@@ -54,7 +57,7 @@ export class MapListComponent extends DirectiveBase implements ControlValueAcces
 
     /** @deprecated Use this component as a form control outlet */
     @Output()
-    change = new EventEmitter();
+    valueChange = new EventEmitter();
 
     list: { key: string, value: string }[] = [];
 
@@ -73,6 +76,8 @@ export class MapListComponent extends DirectiveBase implements ControlValueAcces
         let data = writeObject;
         if (data === null) {
             data = {};
+            this.add();
+            return;
         }
 
         const keys = Object.keys(data);
@@ -111,7 +116,7 @@ export class MapListComponent extends DirectiveBase implements ControlValueAcces
     registerOnChange(fn: any): void {
         this.propagateChange = (val = this.makeMap()) => {
             fn(val);
-            this.change.emit(val);
+            this.valueChange.emit(val);
         };
     }
 
@@ -160,7 +165,7 @@ export class MapListComponent extends DirectiveBase implements ControlValueAcces
 
             let value = obj[k];
             if (value === undefined || value === null) {
-                value = ""
+                value = "";
             } else {
                 value = value.toString();
             }
