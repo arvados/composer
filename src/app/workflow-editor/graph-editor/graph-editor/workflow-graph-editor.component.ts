@@ -328,24 +328,24 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
      * Triggers when app is dropped on canvas
      */
     onDrop(ev: MouseEvent, nodeData: {name: string, type: "cwl" | "directory" | "file"}) {
-	console.log("got drop event");
-
         if (this.readonly || nodeData.type !== "cwl") {
             return;
         }
 
-        const statusProcess = this.statusBar.startProcess(`Adding ${nodeData.name} to Workflow...`);
-
         //const isLocal = AppHelper.isLocal(nodeData.name);
 	const isLocal = true;
 
-	console.log("fetching? "+isLocal);
-	console.log(nodeData);
-	console.log(this.fileRepository);
+	let fetch: Promise<string>;
+	if (nodeData.name.substr(0, nodeData.name.indexOf("#")) != this.data.id.substr(0, this.data.id.indexOf("#"))) {
+	    this.notificationBar.showNotification(`Cannot add tool from different repository.`);
+	    return;
+	} else {
+            fetch = isLocal
+		? this.fileRepository.fetchFile(nodeData.name)
+		: this.platformRepository.getApp(nodeData.name).then(app => JSON.stringify(app));
+	}
 
-        const fetch: Promise<string> = isLocal
-            ? this.fileRepository.fetchFile(nodeData.name)
-            : this.platformRepository.getApp(nodeData.name).then(app => JSON.stringify(app));
+        const statusProcess = this.statusBar.startProcess(`Adding ${nodeData.name} to Workflow...`);
 
         fetch.then(result => this.gateway.resolveContent(result, nodeData.name).toPromise())
             .then(resolved => {
