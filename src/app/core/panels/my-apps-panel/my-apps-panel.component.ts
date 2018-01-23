@@ -122,6 +122,10 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
         });
     }
 
+    refreshRepos() {
+	console.log("Gonna refresh")
+    }
+
     private attachSearchObserver() {
 
         const localFileSearch = (term) => this.dataGateway.searchLocalProjects(term).then(results => {

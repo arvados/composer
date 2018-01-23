@@ -25,7 +25,7 @@
 
             <button type="button"
                     class="btn btn-unstyled"
-                    data-test="settings-menu-button"
+                    data-test="fileActions-menu-button"
                     (click)="fileActionsDropDown.toggleMenu()">
               <i class="fa fa-fw fa-chevron-down"></i>
             </button>
@@ -33,8 +33,9 @@
         </ct-generic-dropdown-menu>
 
         <ng-template #fileActionsMenu class="mr-1">
-          <ul class="list-unstyled" (click)="settingsDropDown.hide()">
-                <li data-test="settings-button"><a href="{{workbenchUrl}}/repositories" target="_blank">Manage Repositories</a></li>
+          <ul class="list-unstyled" (click)="fileActionsDropDown.hide()">
+            <li data-test="fileActions-button"><a href="{{workbenchUrl}}/repositories" target="_blank">Manage Repositories</a></li>
+	    <li data-test="fileActions-button" (click)="refreshRepos()">Refresh Repositories</li>
             </ul>
         </ng-template>
         </span>
