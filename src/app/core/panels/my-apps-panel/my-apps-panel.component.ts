@@ -110,20 +110,16 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
     }
 
     syncFileTree() {
-        this.service.localFolders.subscribeTracked(this, (folders) => {
+        /*this.service.localFolders.subscribeTracked(this, (folders) => {
             folders.forEach((folder) => {
                 this.fileRepository.reloadPath(folder);
             });
-        });
+            });*/
         this.localRepository.getActiveCredentials().take(1).subscribeTracked(this, (creds) => {
             if (creds) {
                 this.service.reloadPlatformData();
             }
         });
-    }
-
-    refreshRepos() {
-	console.log("Gonna refresh")
     }
 
     private attachSearchObserver() {

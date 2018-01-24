@@ -17,6 +17,7 @@ import {GlobalService} from "../../global/global.service";
 import {WorkboxService} from "../../workbox/workbox.service";
 import {AppsPanelService} from "../common/apps-panel.service";
 import {AppHelper} from "../../helpers/AppHelper";
+import {ErrorWrapper} from "../../helpers/error-wrapper";
 import {getDragImageClass, getDragTransferDataType} from "../../../ui/tree-view/tree-view-utils";
 import {JSGitService} from "../../../services/js-git/js-git.service";
 
@@ -63,6 +64,7 @@ export class ArvadosAppsPanelService extends AppsPanelService {
         const self = this;
         return this.arvRepository.getGitRepos()
             .map(items => {
+		console.log("refreshing repo list tree")
                 return items.map(item => {
                     const children_sub: ReplaySubject<TreeNode<any>[]> = new ReplaySubject(1);
 
@@ -81,6 +83,21 @@ export class ArvadosAppsPanelService extends AppsPanelService {
 
                         const repoUrl = item["url"];
                         self._jsgit.getRepoContents(repoUrl).subscribe((dirents) => {
+			    if (dirents instanceof Error) {
+				self.notificationBar.showNotification("Cannot get repository "+repoUrl+". " + new ErrorWrapper(dirents));
+				children_sub.next([{
+				    id: "error",
+				    data: null,
+				    type: "loading",
+				    label: "error",
+				    isExpandable: false,
+				    isExpanded: Observable.of(false),
+				    icon: "",
+				    iconExpanded: "",
+				    children: Observable.empty()
+				}]);
+				return;
+			    }
                             function load_dir(dirname: string): Observable<TreeNode<any>[]> {
                                 const pending = [];
 
@@ -184,7 +201,7 @@ export class ArvadosAppsPanelService extends AppsPanelService {
     }
 
     reloadPlatformData() {
-        //this.global.reloadPlatformData();
+        this.global.reloadPlatformData();
     }
 
     updateLocalNodeExpansionState(path: string, state: boolean): void {

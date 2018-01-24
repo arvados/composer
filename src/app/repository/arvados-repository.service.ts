@@ -35,7 +35,8 @@ export class ArvadosRepositoryService {
     private selectedAppsPanel: ReplaySubject<"myApps" | "publicApps"> = new ReplaySubject(1);
     private publicAppsGrouping: ReplaySubject<"toolkit" | "category"> = new ReplaySubject(1);
 
-    private httpOptions: RequestOptions;
+    private gitsubscribed = false;
+    private gitRepos: ReplaySubject<Object[]> = new ReplaySubject(1);
 
     private repo_uuid = {};
 
@@ -68,12 +69,12 @@ export class ArvadosRepositoryService {
             console.log("using token "+ this.getToken("api_token"));
             _config.configuration.subscribe((conf) => {
                 const token = this.getToken("api_token");
-                const headers = new Headers({ "Authorization": "OAuth2 " + token });
 		const apiEndPoint = conf['apiEndPoint'];
-                this.httpOptions = new RequestOptions({ "headers": headers });
-		this._http.get(apiEndPoint+"/arvados/v1/users/current", this.httpOptions).subscribe(response => {
+                const headers = new Headers({ "Authorization": "OAuth2 " + token });
+                const httpOptions = new RequestOptions({ "headers": headers });
+		this._http.get(apiEndPoint+"/arvados/v1/users/current", httpOptions).subscribe(response => {
 		    const u = response.json();
-                    this.setActiveCredentials(new AuthCredentials(conf['apiEndPoint']+"/0123456789abcd", token, {
+                    this.setActiveCredentials(new AuthCredentials(apiEndPoint+"/0123456789abcd", token, {
 			username: u["username"],
 			first_name: u["first_name"],
 			last_name: u["last_name"],
@@ -84,6 +85,25 @@ export class ArvadosRepositoryService {
         } else {
             this.setActiveCredentials(null);
         }
+
+	this.getActiveCredentials().subscribe(auth => {
+	    if (auth !== null) {
+		this.refreshGitRepos(auth);
+	    }
+	});
+    }
+
+    refreshGitRepos(auth: AuthCredentials) {
+	const apiEndPoint = auth.url.substr(0, auth.url.length - 15);
+        const headers = new Headers({ "Authorization": "OAuth2 " + auth.token });
+        const httpOptions = new RequestOptions({ "headers": headers });
+	this._http.get(apiEndPoint+"/arvados/v1/repositories", httpOptions).subscribe(response => {
+            this.gitRepos.next(response.json()["items"].map(i => {
+		this.repo_uuid[i["clone_urls"][1]] = i["uuid"];
+		return {name: i["name"],
+			url: i["clone_urls"][1]}
+            }));
+	});
     }
 
     getCredentials(): Observable<AuthCredentials[]> {
@@ -91,7 +111,6 @@ export class ArvadosRepositoryService {
     }
 
     getActiveCredentials(): Observable<AuthCredentials> {
-        console.log("getit");
         return this.activeCredentials;
     }
 
@@ -137,16 +156,7 @@ export class ArvadosRepositoryService {
     }
 
     getGitRepos(): Observable<Object[]> {
-        return this._config.configuration.flatMap((conf) => {
-            const apiEndPoint = conf['apiEndPoint'];
-            return this._http.get(apiEndPoint+"/arvados/v1/repositories", this.httpOptions).map(response => {
-                return response.json()["items"].map(i => {
-                    this.repo_uuid[i["clone_urls"][1]] = i["uuid"];
-                    return {name: i["name"],
-                            url: i["clone_urls"][1]}
-                });
-            });
-        });
+	return this.gitRepos;
     }
 
     getRepoUuid(repoUrl: string): string {
@@ -181,7 +191,12 @@ export class ArvadosRepositoryService {
     }
 
     fetch(): Observable<any> {
-        return this.ipc.request("fetchPlatformData");
+	this.getActiveCredentials().take(1).subscribe(auth => {
+	    if (auth !== null) {
+		this.refreshGitRepos(auth);
+	    }
+	});
+	return this.gitRepos;
     }
 
     getOpenProjects(): Observable<Project[]> {

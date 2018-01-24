@@ -32,8 +32,10 @@ export class JSGitService {
         this.repo[repoUrl] = repoObj;
 
 	this.repo[repoUrl]["clone"]('refs/heads/master', 1, (data) => {
-
-	    console.log(data);
+	    if (data instanceof Error) {
+		repoObj["contents"].next(data);
+		return;
+	    }
             if (!data) {
                 return;
             }

@@ -10,6 +10,7 @@ import {PlatformConnectionService} from "./core/auth/platform-connection.service
 import {CoreModule} from "./core/core.module";
 import {DataGatewayService} from "./core/data-gateway/data-gateway.service";
 import {GlobalService} from "./core/global/global.service";
+import {ArvadosGlobalService} from "./core/global/arvados-global.service";
 import {CWLModule} from "./cwl/cwl.module";
 import {EditorCommonModule} from "./editor-common/editor-common.module";
 import {FileRepositoryService} from "./file-repository/file-repository.service";
@@ -50,7 +51,6 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
         DomEventService,
         ExportAppService,
         FormBuilder,
-        GlobalService,
         IpcWebService,
         IpcService,
         JavascriptEvalService,
@@ -70,9 +70,13 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
             provide: PlatformRepositoryService,
             useClass: ArvadosRepositoryService
         },
+        {
+            provide: GlobalService,
+            useClass: ArvadosGlobalService
+        },
 
-        LocalRepositoryService,
-        PlatformRepositoryService,
+        //LocalRepositoryService,
+        //PlatformRepositoryService,
         OpenExternalFileService,
         ModalService,
         PlatformConnectionService,
