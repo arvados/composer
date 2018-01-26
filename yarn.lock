@@ -3820,7 +3820,7 @@ js-base64@^2.1.8, js-base64@^2.1.9:
 
 "js-git@git://github.com/curoverse/js-git.git":
   version "0.7.8"
-  resolved "git://github.com/curoverse/js-git.git#5423d4ecf71dd6b6cadba56ead76141fde307272"
+  resolved "git://github.com/curoverse/js-git.git#d9314f13f8c71ad3b97c5cef6ec9b5108ed304cb"
   dependencies:
     bodec "^0.1.0"
     culvert "^0.1.2"
