@@ -232,9 +232,10 @@ export class ArvadosRepositoryService {
             });
 
             if (modified) {
-                this.patch({
-                    expandedNodes: Array.from(patch)
-                });
+                //this.patch({
+                //    expandedNodes: Array.from(patch)
+                //});
+		this.expandedNodes.next(Array.from(patch));
             }
 
         });

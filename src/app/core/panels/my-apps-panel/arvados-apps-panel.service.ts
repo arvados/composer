@@ -68,7 +68,12 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                 return items.map(item => {
                     const children_sub: ReplaySubject<TreeNode<any>[]> = new ReplaySubject(1);
 
+		    item["loaded"] = false;
                     item["start_load"] = function() {
+			if (item["loaded"]) {
+			    return;
+			}
+
                         children_sub.next([{
                             id: "loading",
                             data: null,
@@ -89,7 +94,7 @@ export class ArvadosAppsPanelService extends AppsPanelService {
 				    id: "error",
 				    data: null,
 				    type: "loading",
-				    label: "error",
+				    label: "(error)",
 				    isExpandable: false,
 				    isExpanded: Observable.of(false),
 				    icon: "",
@@ -180,6 +185,7 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                             }
 
                             load_dir("/").subscribe((newchildren) => {
+				item["loaded"] = true;
                                 children_sub.next(newchildren);
                             });
                         });
@@ -194,6 +200,11 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                         isExpanded: self.expandedNodes.map(list => list.indexOf(item["url"]) !== -1),
                         children: children_sub
                     });
+		    app.isExpanded.subscribe((val) => {
+			if (val && !app.data["loaded"]) {
+			    app.data.start_load();
+			}
+		    });
 
                     return app;
                 });

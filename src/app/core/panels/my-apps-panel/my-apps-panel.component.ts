@@ -82,7 +82,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
         this.attachExpansionStateSaving();
         this.listenForAppOpening();
         this.listenForContextMenu();
-        this.listenForGitRepoExpand();
+        //this.listenForGitRepoExpand();
 
         this.service.rootFolders.subscribe(folders => {
             this.rootFolders = folders;

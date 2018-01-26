@@ -7,6 +7,8 @@ import * as HighLevel from "js-git/mixins/high-level";
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
 import {AuthService} from "../../auth/auth.service"
 
+import {NotificationBarService} from "../../layout/notification-bar/notification-bar.service";
+
 @Injectable()
 export class JSGitService {
     private userCred;
@@ -14,7 +16,9 @@ export class JSGitService {
     private httpOptions;
     private repo = {};
 
-    constructor(private auth: AuthService, private _http: Http) {
+    constructor(private auth: AuthService,
+		private _http: Http,
+		private notificationBar: NotificationBarService) {
         this.auth.getActive().subscribe((active) => {
             if (active) {
 		this.userCred = active;
@@ -24,13 +28,8 @@ export class JSGitService {
         });
     }
 
-    private createRepo(repoUrl: string): Observable<any> {
-        const repoObj = {};
-        HighLevel(repoObj, this.userCred.user.username, this.userCred.token, repoUrl);
-
-        repoObj["contents"] = new ReplaySubject(1);
-        this.repo[repoUrl] = repoObj;
-
+    private cloneRepo(repoUrl: string) {
+        const repoObj = this.repo[repoUrl];
 	this.repo[repoUrl]["clone"]('refs/heads/master', 1, (data) => {
 	    if (data instanceof Error) {
 		repoObj["contents"].next(data);
@@ -40,11 +39,17 @@ export class JSGitService {
                 return;
             }
             repoObj["resolveRepo"]('refs/heads/master', (res) => {
-                console.log(res);
                 repoObj["contents"].next(res);
             });
         });
-        return repoObj["contents"];
+    }
+
+    private createRepo(repoUrl: string) {
+        const repoObj = {};
+        HighLevel(repoObj, this.userCred.user.username, this.userCred.token, repoUrl);
+
+        repoObj["contents"] = new ReplaySubject(1);
+        this.repo[repoUrl] = repoObj;
     }
 
     static splitFileKey(fileKey: string): {repoUrl: string, path: string} {
@@ -67,11 +72,11 @@ export class JSGitService {
     }
 
     public getRepoContents(repoUrl): Observable<any> {
-        if (this.repo[repoUrl]) {
-            return this.repo[repoUrl]["contents"];
-        } else {
-            return this.createRepo(repoUrl);
+        if (!this.repo[repoUrl]) {
+            this.createRepo(repoUrl);
         }
+	this.cloneRepo(repoUrl);
+        return this.repo[repoUrl]["contents"];
     }
 
     getLoadedRepos(): Observable<Array<string>> {
@@ -124,9 +129,12 @@ export class JSGitService {
                 repoObj["resolveRepo"]('refs/heads/master', (res) => {
                     repoObj["contents"].next(res);
                     repoObj["push"]('refs/heads/master', (feedback) => {
-			console.log(feedback);
-			observer.next(content);
-			observer.complete();
+			if (feedback === null) {
+			    observer.next(content);
+			    observer.complete();
+			} else {
+			    self.notificationBar.showNotification(feedback);
+			}
                     });
                 });
             });
