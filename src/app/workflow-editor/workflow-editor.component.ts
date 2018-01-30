@@ -87,7 +87,8 @@ export class WorkflowEditorComponent extends AppEditorBase implements OnDestroy,
                 fileRepository: FileRepositoryService,
                 workbox: WorkboxService,
                 exportApp: ExportAppService,
-                executorService: ExecutorService) {
+                executorService: ExecutorService,
+		jsGit: JSGitService) {
         super(
             statusBar,
             notificationBar,
@@ -103,7 +104,8 @@ export class WorkflowEditorComponent extends AppEditorBase implements OnDestroy,
             fileRepository,
             workbox,
             exportApp,
-            executorService
+            executorService,
+	    jsGit
         );
 
         this.inspectorService = inspector;

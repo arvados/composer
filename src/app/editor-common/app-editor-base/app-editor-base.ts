@@ -40,6 +40,7 @@ import {APP_SAVER_TOKEN, AppSaver} from "../services/app-saving/app-saver.interf
 import {CommonReportPanelComponent} from "../template-common/common-preview-panel/common-report-panel.component";
 import {FileRepositoryService} from "../../file-repository/file-repository.service";
 import {ExportAppService} from "../../services/export-app/export-app.service";
+import {JSGitService} from "../../services/js-git/js-git.service";
 
 export abstract class AppEditorBase extends DirectiveBase implements StatusControlProvider, OnInit, AfterViewInit {
 
@@ -149,7 +150,8 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
                 protected fileRepository: FileRepositoryService,
                 protected workbox: WorkboxService,
                 protected exportApp: ExportAppService,
-                public executor: ExecutorService) {
+                public executor: ExecutorService,
+		protected jsGit: JSGitService) {
 
         super();
 
@@ -175,8 +177,28 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
         /** Changes to the code that did not come from user's typing. */
         Observable.merge(this.tabData.fileContent, this.priorityCodeUpdates).distinctUntilChanged().subscribeTracked(this, externalCodeChanges);
 
+	this.jsGit.getRepoContents(JSGitService.splitFileKey(this.tabData.id).repoUrl).subscribeTracked(this, () => {
+            /** @name revisionHackFlagSwitchOn */
+	    this.platformRepository.getAppMeta(this.tabData.id, "isDirty").take(1).subscribe((isModified) => {
+		if (!!isModified) {
+		    console.log("not updating locally modified app "+this.tabData.id);
+		    return;
+		}
+		this.revisionChangingInProgress = true;
+		this.jsGit.getFileContent(this.tabData.id).take(1).subscribe(result => {
+                    this.priorityCodeUpdates.next(result);
+                    this.setAppDirtyState(false);
+		}, err => {
+                    this.revisionChangingInProgress = false;
+                    this.revisionList.loadingRevision = false;
+                    this.notificationBar.showNotification("Cannot open revision. " + new ErrorWrapper(err));
+		});
+	    });
+	});
+
         /** On user interactions (changes) set app state to Dirty */
         this.codeEditorContent.valueChanges.skip(1).filter(() => this.revisionChangingInProgress === false).subscribeTracked(this, () => {
+	    console.log("setting dirty");
             this.setAppDirtyState(true);
         }, (err) => {
             console.warn("Error on dirty checking stream", err);

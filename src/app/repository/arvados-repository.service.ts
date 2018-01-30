@@ -27,7 +27,7 @@ export class ArvadosRepositoryService {
     private expandedNodes: ReplaySubject<string[]>    = new ReplaySubject(1);
     private openTabs: ReplaySubject<TabData<any>[]>   = new ReplaySubject(1);
     private recentApps: ReplaySubject<RecentAppTab[]> = new ReplaySubject(1);
-    private appMeta: ReplaySubject<AppMeta[]>         = new ReplaySubject(1);
+    private appMeta: ReplaySubject<Object>            = new ReplaySubject(1);
 
     private credentials: ReplaySubject<AuthCredentials[]>             = new ReplaySubject(1);
     private activeCredentials: ReplaySubject<AuthCredentials>         = new ReplaySubject(1);
@@ -62,9 +62,12 @@ export class ArvadosRepositoryService {
         this.listen("recentApps").subscribe(this.recentApps);
         //this.listen("openProjects").subscribe(this.openProjects);
         this.listen("expandedNodes").subscribe(this.expandedNodes);
-        this.listen("appMeta").subscribe(this.appMeta);
+        //this.listen("appMeta").subscribe(this.appMeta);
+
+	console.log("Creating arvados repository service");
 
 	this.openTabs.next([]);
+	this.appMeta.next({});
 
         console.log("checking token "+this.getToken("api_token"));
         if (this.storeToken("api_token") || this.getToken("api_token")) {
@@ -361,6 +364,8 @@ export class ArvadosRepositoryService {
     }
 
     getAppMeta<T>(appID: string, key?: string): Observable<AppMeta> {
+	console.log("getAppMeta "+appID+" "+key);
+	console.log(this.appMeta);
         return this.appMeta.map(meta => {
 
                 if (meta === null) {
@@ -369,7 +374,9 @@ export class ArvadosRepositoryService {
 
                 const data = meta[appID];
 
-                if (key && data) {
+	    console.log("getAppMeta inner");
+	    console.log(meta);
+            if (key && data) {
                     return data[key];
                 }
 
@@ -379,12 +386,31 @@ export class ArvadosRepositoryService {
     }
 
     patchAppMeta(appID: string, key: keyof AppMeta, value: any): Promise<any> {
-        return this.ipc.request("patchAppMeta", {
-            profile: "user",
-            appID,
-            key,
-            value
+	console.log("patching "+appID+" "+key+" "+value);
+	console.log(this.appMeta);
+        return this.appMeta.take(1).map((meta) => {
+
+            if (meta === null) {
+                return meta;
+            }
+
+	    if (meta[appID] === undefined) {
+		meta[appID] = {};
+	    }
+
+            meta[appID][key] = value;
+
+	    this.appMeta.next(meta);
+
+	    return meta;
         }).toPromise();
+
+        /*return this.ipc.request("patchAppMeta", {
+          profile: "user",
+          appID,
+          key,
+          value
+          }).toPromise();*/
     }
 
     //Local stubs
