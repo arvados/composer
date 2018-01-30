@@ -122,7 +122,6 @@ export class AppModule {
         if (environment.browser) {
             console.log("Starting");
             this._authService.getActive().subscribe((cred) => {
-                console.log("Checked cred"+cred);
                 if (!cred) {
                     rootComponent = "login";
                     InitComponent = LoginComponent;

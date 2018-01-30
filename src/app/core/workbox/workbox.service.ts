@@ -36,7 +36,7 @@ export class WorkboxService {
                 private platformRepository: PlatformRepositoryService) {
 
         // Whenever a user gets changed, we should restore their tabs
-        this.auth.getActive()
+        this.auth.getActive().delay(1)
             .switchMap(() => this.getStoredTabs().take(1))
             // If we have no active tabs, add a "new file"
             .map(tabDataList => {

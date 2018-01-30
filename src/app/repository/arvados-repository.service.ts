@@ -64,6 +64,8 @@ export class ArvadosRepositoryService {
         this.listen("expandedNodes").subscribe(this.expandedNodes);
         this.listen("appMeta").subscribe(this.appMeta);
 
+	this.openTabs.next([]);
+
         console.log("checking token "+this.getToken("api_token"));
         if (this.storeToken("api_token") || this.getToken("api_token")) {
             console.log("using token "+ this.getToken("api_token"));
