@@ -42,9 +42,10 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
 @NgModule({
     providers: [
         ConfigurationService,
+        ArvadosRepositoryService,
         {
             provide: CREDENTIALS_REGISTRY,
-            useClass: ArvadosRepositoryService
+            useExisting: ArvadosRepositoryService
         },
         AuthService,
         DataGatewayService,
@@ -54,21 +55,19 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
         IpcWebService,
         IpcService,
         JavascriptEvalService,
-
-        ArvadosRepositoryService,
         ArvadosFileRepositoryService,
 	SchemaSaladResolver,
         {
             provide: FileRepositoryService,
-            useClass: ArvadosFileRepositoryService
+            useExisting: ArvadosFileRepositoryService
         },
         {
             provide: LocalRepositoryService,
-            useClass: ArvadosRepositoryService
+            useExisting: ArvadosRepositoryService
         },
         {
             provide: PlatformRepositoryService,
-            useClass: ArvadosRepositoryService
+            useExisting: ArvadosRepositoryService
         },
         {
             provide: GlobalService,

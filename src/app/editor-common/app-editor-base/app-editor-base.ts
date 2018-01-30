@@ -175,19 +175,20 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
         const externalCodeChanges = new ReplaySubject(1);
 
         /** Changes to the code that did not come from user's typing. */
-        Observable.merge(this.tabData.fileContent, this.priorityCodeUpdates).distinctUntilChanged().subscribeTracked(this, externalCodeChanges);
+        Observable.merge(this.tabData.fileContent.do((content) => {
+	    this.setAppDirtyState(false);
+	}), this.priorityCodeUpdates).distinctUntilChanged().subscribeTracked(this, externalCodeChanges);
 
 	this.jsGit.getRepoContents(JSGitService.splitFileKey(this.tabData.id).repoUrl).subscribeTracked(this, () => {
             /** @name revisionHackFlagSwitchOn */
-	    this.platformRepository.getAppMeta(this.tabData.id, "isDirty").take(1).subscribe((isModified) => {
-		if (!!isModified) {
+	    this.localRepository.getAppMeta(this.tabData.id, "isDirty").take(1).subscribe((isModified) => {
+		if (isModified) {
 		    console.log("not updating locally modified app "+this.tabData.id);
 		    return;
 		}
 		this.revisionChangingInProgress = true;
 		this.jsGit.getFileContent(this.tabData.id).take(1).subscribe(result => {
                     this.priorityCodeUpdates.next(result);
-                    this.setAppDirtyState(false);
 		}, err => {
                     this.revisionChangingInProgress = false;
                     this.revisionList.loadingRevision = false;
