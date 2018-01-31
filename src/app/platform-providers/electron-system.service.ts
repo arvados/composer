@@ -5,7 +5,7 @@ import {environment} from './../../environments/environment';
 declare var shell:any;
 declare var webFrame:any;
 if ( ! environment.browser ) {
-	const {shell, webFrame} = window["require"]("electron");
+    const {shell, webFrame} = window["require"]("electron");
 }
 
 @Injectable()

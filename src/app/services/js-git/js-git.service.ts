@@ -1,4 +1,3 @@
-
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import { ReplaySubject } from "rxjs/ReplaySubject";
@@ -17,11 +16,11 @@ export class JSGitService {
     private repo = {};
 
     constructor(private auth: AuthService,
-		private _http: Http,
-		private notificationBar: NotificationBarService) {
+                private _http: Http,
+                private notificationBar: NotificationBarService) {
         this.auth.getActive().subscribe((active) => {
             if (active) {
-		this.userCred = active;
+                this.userCred = active;
             } else {
                 this.userCred = null;
             }
@@ -31,21 +30,21 @@ export class JSGitService {
     private cloneRepo(repoUrl: string) : Observable<any> {
         const repoObj = this.repo[repoUrl];
         return Observable.create((observer) => {
-	    this.repo[repoUrl]["clone"]('refs/heads/master', 1, (data) => {
-		if (data instanceof Error) {
-		    observer.error(data);
-		    observer.complete();
-		    return;
-		}
-		if (!data) {
+            this.repo[repoUrl]["clone"]('refs/heads/master', 1, (data) => {
+                if (data instanceof Error) {
+                    observer.error(data);
+                    observer.complete();
                     return;
-		}
-		repoObj["resolveRepo"]('refs/heads/master', (res) => {
-		    observer.next(res);
-		    observer.complete();
-		});
+                }
+                if (!data) {
+                    return;
+                }
+                repoObj["resolveRepo"]('refs/heads/master', (res) => {
+                    observer.next(res);
+                    observer.complete();
+                });
             });
-	});
+        });
     }
 
     private createRepo(repoUrl: string) {
@@ -79,10 +78,10 @@ export class JSGitService {
         if (!this.repo[repoUrl]) {
             this.createRepo(repoUrl);
         }
-	return this.cloneRepo(repoUrl).mergeMap((data) => {
-	    this.repo[repoUrl]["contents"].next(data);
-	    return this.repo[repoUrl]["contents"];
-	});
+        return this.cloneRepo(repoUrl).mergeMap((data) => {
+            this.repo[repoUrl]["contents"].next(data);
+            return this.repo[repoUrl]["contents"];
+        });
     }
 
     getLoadedRepos(): Observable<Array<string>> {
@@ -124,37 +123,37 @@ export class JSGitService {
                 content
             };
             const dataForCommit = [fileToCommit];
-	    const metadata = {
-		message: "Committed using Arvados Composer",
-		author: {
-		    name: this.userCred.user.first_name + " " + this.userCred.user.last_name,
-		    email: this.userCred.user.email
-		}
-	    };
+            const metadata = {
+                message: "Committed using Arvados Composer",
+                author: {
+                    name: this.userCred.user.first_name + " " + this.userCred.user.last_name,
+                    email: this.userCred.user.email
+                }
+            };
             repoObj["commit"]('refs/heads/master', dataForCommit, metadata, (feedback) => {
                 repoObj["resolveRepo"]('refs/heads/master', (res) => {
                     repoObj["push"]('refs/heads/master', (feedback) => {
-			if (feedback === null) {
-			    observer.next(content);
-			    repoObj["contents"].next(res);
-			    observer.complete();
-			} else {
-			    // Push was rejected, try updating and then saving again.
-			    if (rebase) {
-				console.log("Rebasing");
-				//this.getRepoContents(sp.repoUrl).take(1).subscribe(() => {
-				this.cloneRepo(sp.repoUrl).subscribe(() => {
-				    this.saveToGitRepo(fileKey, content, false).subscribe(() => {
-					console.log("Done");
-					observer.next(content);
-					observer.complete();
-				    })
-				});
-			    } else {
-				self.notificationBar.showNotification(feedback);
-				observer.complete();
-			    }
-			}
+                        if (feedback === null) {
+                            observer.next(content);
+                            repoObj["contents"].next(res);
+                            observer.complete();
+                        } else {
+                            // Push was rejected, try updating and then saving again.
+                            if (rebase) {
+                                console.log("Rebasing");
+                                //this.getRepoContents(sp.repoUrl).take(1).subscribe(() => {
+                                this.cloneRepo(sp.repoUrl).subscribe(() => {
+                                    this.saveToGitRepo(fileKey, content, false).subscribe(() => {
+                                        console.log("Done");
+                                        observer.next(content);
+                                        observer.complete();
+                                    })
+                                });
+                            } else {
+                                self.notificationBar.showNotification(feedback);
+                                observer.complete();
+                            }
+                        }
                     });
                 });
             });

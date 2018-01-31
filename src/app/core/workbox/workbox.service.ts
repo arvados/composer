@@ -38,10 +38,10 @@ export class WorkboxService {
         // Whenever a user gets changed, we should restore their tabs
         this.auth.getActive().delay(1)
             .switchMap(() => this.getStoredTabs().take(1))
-            // If we have no active tabs, add a "new file"
+        // If we have no active tabs, add a "new file"
             .map(tabDataList => {
                 return tabDataList.length ? tabDataList : [this.homeTabData]
-                })
+            })
             .map(tabDataList => tabDataList.map(tabData => {
                 return this.isUtilityTab(tabData) ? tabData : this.getOrCreateAppTab(tabData, true);
             }))
@@ -269,8 +269,6 @@ export class WorkboxService {
         const id         = data.id;
         const label      = AppHelper.getBasename(data.id);
         const isWritable = data.isWritable;
-
-	console.log("id is "+data.id);
 
         const fileContent = Observable.of(1).switchMap(() => {
             if (dataSource === "local") {

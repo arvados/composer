@@ -20,8 +20,6 @@ export class ArvadosGlobalService {
     }
 
     reloadPlatformData() {
-
-	console.log("got reloadPlatformData");
         const process = this.statusBar.startProcess("Getting available repositories.");
         this.arvRepository.fetch().take(1).subscribe((data) => {
             this.statusBar.stopProcess(process, "Refreshed repositories");
@@ -33,7 +31,7 @@ export class ArvadosGlobalService {
     }
 
     checkForPlatformUpdates(showModal: boolean = false): Promise<GitHubRelease> {
-	return Promise.resolve(null);
+        return Promise.resolve(null);
     }
 
     showAboutPageModal() {

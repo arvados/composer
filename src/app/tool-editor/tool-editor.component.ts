@@ -110,7 +110,7 @@ export class ToolEditorComponent extends AppEditorBase implements OnInit {
                 workbox: WorkboxService,
                 exportApp: ExportAppService,
                 executor: ExecutorService,
-		jsGit: JSGitService) {
+                jsGit: JSGitService) {
 
         super(
             statusBar,
@@ -128,7 +128,7 @@ export class ToolEditorComponent extends AppEditorBase implements OnInit {
             workbox,
             exportApp,
             executor,
-	    jsGit
+            jsGit
         );
     }
 

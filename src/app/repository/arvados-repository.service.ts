@@ -64,51 +64,49 @@ export class ArvadosRepositoryService {
         this.listen("expandedNodes").subscribe(this.expandedNodes);
         //this.listen("appMeta").subscribe(this.appMeta);
 
-	console.log("Creating arvados repository service");
-
-	this.openTabs.next([]);
-	this.appMeta.next({});
+        this.openTabs.next([]);
+        this.appMeta.next({});
 
         console.log("checking token "+this.getToken("api_token"));
         if (this.storeToken("api_token") || this.getToken("api_token")) {
             console.log("using token "+ this.getToken("api_token"));
             _config.configuration.subscribe((conf) => {
                 const token = this.getToken("api_token");
-		const apiEndPoint = conf['apiEndPoint'];
+                const apiEndPoint = conf['apiEndPoint'];
                 const headers = new Headers({ "Authorization": "OAuth2 " + token });
                 const httpOptions = new RequestOptions({ "headers": headers });
-		this._http.get(apiEndPoint+"/arvados/v1/users/current", httpOptions).subscribe(response => {
-		    const u = response.json();
+                this._http.get(apiEndPoint+"/arvados/v1/users/current", httpOptions).subscribe(response => {
+                    const u = response.json();
                     this.setActiveCredentials(new AuthCredentials(apiEndPoint+"/0123456789abcd", token, {
-			username: u["username"],
-			first_name: u["first_name"],
-			last_name: u["last_name"],
-			email: u["email"]
+                        username: u["username"],
+                        first_name: u["first_name"],
+                        last_name: u["last_name"],
+                        email: u["email"]
                     }));
-		});
+                });
             });
         } else {
             this.setActiveCredentials(null);
         }
 
-	this.getActiveCredentials().subscribe(auth => {
-	    if (auth !== null) {
-		this.refreshGitRepos(auth);
-	    }
-	});
+        this.getActiveCredentials().subscribe(auth => {
+            if (auth !== null) {
+                this.refreshGitRepos(auth);
+            }
+        });
     }
 
     refreshGitRepos(auth: AuthCredentials) {
-	const apiEndPoint = auth.url.substr(0, auth.url.length - 15);
+        const apiEndPoint = auth.url.substr(0, auth.url.length - 15);
         const headers = new Headers({ "Authorization": "OAuth2 " + auth.token });
         const httpOptions = new RequestOptions({ "headers": headers });
-	this._http.get(apiEndPoint+"/arvados/v1/repositories", httpOptions).subscribe(response => {
+        this._http.get(apiEndPoint+"/arvados/v1/repositories", httpOptions).subscribe(response => {
             this.gitRepos.next(response.json()["items"].map(i => {
-		this.repo_uuid[i["clone_urls"][1]] = i["uuid"];
-		return {name: i["name"],
-			url: i["clone_urls"][1]}
+                this.repo_uuid[i["clone_urls"][1]] = i["uuid"];
+                return {name: i["name"],
+                        url: i["clone_urls"][1]}
             }));
-	});
+        });
     }
 
     getCredentials(): Observable<AuthCredentials[]> {
@@ -161,7 +159,7 @@ export class ArvadosRepositoryService {
     }
 
     getGitRepos(): Observable<Object[]> {
-	return this.gitRepos;
+        return this.gitRepos;
     }
 
     getRepoUuid(repoUrl: string): string {
@@ -196,12 +194,12 @@ export class ArvadosRepositoryService {
     }
 
     fetch(): Observable<any> {
-	this.getActiveCredentials().take(1).subscribe(auth => {
-	    if (auth !== null) {
-		this.refreshGitRepos(auth);
-	    }
-	});
-	return this.gitRepos;
+        this.getActiveCredentials().take(1).subscribe(auth => {
+            if (auth !== null) {
+                this.refreshGitRepos(auth);
+            }
+        });
+        return this.gitRepos;
     }
 
     getOpenProjects(): Observable<Project[]> {
@@ -240,7 +238,7 @@ export class ArvadosRepositoryService {
                 //this.patch({
                 //    expandedNodes: Array.from(patch)
                 //});
-		this.expandedNodes.next(Array.from(patch));
+                this.expandedNodes.next(Array.from(patch));
             }
 
         });
@@ -366,19 +364,19 @@ export class ArvadosRepositoryService {
     getAppMeta<T>(appID: string, key?: string): Observable<AppMeta> {
         return this.appMeta.map(meta => {
 
-                if (meta === null) {
-                    return meta;
-                }
+            if (meta === null) {
+                return meta;
+            }
 
-                const data = meta[appID];
+            const data = meta[appID];
 
             if (key && data) {
-                    return data[key];
-                }
+                return data[key];
+            }
 
-                return data;
+            return data;
 
-            });
+        });
     }
 
     patchAppMeta(appID: string, key: keyof AppMeta, value: any): Promise<any> {
@@ -388,15 +386,15 @@ export class ArvadosRepositoryService {
                 return meta;
             }
 
-	    if (meta[appID] === undefined) {
-		meta[appID] = {};
-	    }
+            if (meta[appID] === undefined) {
+                meta[appID] = {};
+            }
 
             meta[appID][key] = value;
 
-	    this.appMeta.next(meta);
+            this.appMeta.next(meta);
 
-	    return meta;
+            return meta;
         }).toPromise();
 
         /*return this.ipc.request("patchAppMeta", {

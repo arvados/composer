@@ -56,7 +56,7 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
         IpcService,
         JavascriptEvalService,
         ArvadosFileRepositoryService,
-	SchemaSaladResolver,
+        SchemaSaladResolver,
         {
             provide: FileRepositoryService,
             useExisting: ArvadosFileRepositoryService
@@ -103,7 +103,7 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
         ToolEditorModule,
         WorkflowEditorModule,
         WebstubModule,
-//        NativeModule,
+        //NativeModule,
         CookieModule.forRoot(),
     ],
 })

@@ -151,7 +151,7 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
                 protected workbox: WorkboxService,
                 protected exportApp: ExportAppService,
                 public executor: ExecutorService,
-		private jsGit: JSGitService) {
+                private jsGit: JSGitService) {
 
         super();
 
@@ -176,30 +176,30 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
 
         /** Changes to the code that did not come from user's typing. */
         Observable.merge(this.tabData.fileContent.do((content) => {
-	    this.setAppDirtyState(false);
-	}), this.priorityCodeUpdates).distinctUntilChanged().subscribeTracked(this, externalCodeChanges);
+            this.setAppDirtyState(false);
+        }), this.priorityCodeUpdates).distinctUntilChanged().subscribeTracked(this, externalCodeChanges);
 
-	this.jsGit.getRepoContents(JSGitService.splitFileKey(this.tabData.id).repoUrl).subscribeTracked(this, () => {
+        this.jsGit.getRepoContents(JSGitService.splitFileKey(this.tabData.id).repoUrl).subscribeTracked(this, () => {
             /** @name revisionHackFlagSwitchOn */
-	    this.localRepository.getAppMeta(this.tabData.id, "isDirty").take(1).subscribe((isModified) => {
-		if (isModified) {
-		    console.log("not updating locally modified app "+this.tabData.id);
-		    return;
-		}
-		this.revisionChangingInProgress = true;
-		this.jsGit.getFileContent(this.tabData.id).take(1).subscribe(result => {
+            this.localRepository.getAppMeta(this.tabData.id, "isDirty").take(1).subscribe((isModified) => {
+                if (isModified) {
+                    console.log("not updating locally modified app "+this.tabData.id);
+                    return;
+                }
+                this.revisionChangingInProgress = true;
+                this.jsGit.getFileContent(this.tabData.id).take(1).subscribe(result => {
                     this.priorityCodeUpdates.next(result);
-		}, err => {
+                }, err => {
                     this.revisionChangingInProgress = false;
                     this.revisionList.loadingRevision = false;
                     this.notificationBar.showNotification("Cannot open revision. " + new ErrorWrapper(err));
-		});
-	    });
-	});
+                });
+            });
+        });
 
         /** On user interactions (changes) set app state to Dirty */
         this.codeEditorContent.valueChanges.skip(1).filter(() => this.revisionChangingInProgress === false).subscribeTracked(this, () => {
-	    console.log("setting dirty");
+            console.log("setting dirty");
             this.setAppDirtyState(true);
         }, (err) => {
             console.warn("Error on dirty checking stream", err);
@@ -260,16 +260,16 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
          */
 
         const validationStateChanges = firstValidationEnd.withLatestFrom(externalCodeChanges)
-            .switchMap((data: [AppValidityState, string]) => {
-                const [validationState] = data;
-                return validationCompletion
-                    .startWith(validationState)
-                    .map(state => [this.codeEditorContent.value, state]);
-            })
-            .withLatestFrom(
-                AppHelper.isLocal(this.tabData.id) ? Observable.of(true)
-                    : this.platformRepository.getAppMeta(this.tabData.id, "swapUnlocked"),
-                (outer, inner) => [...outer, inner]).share();
+              .switchMap((data: [AppValidityState, string]) => {
+                  const [validationState] = data;
+                  return validationCompletion
+                      .startWith(validationState)
+                      .map(state => [this.codeEditorContent.value, state]);
+              })
+              .withLatestFrom(
+                  AppHelper.isLocal(this.tabData.id) ? Observable.of(true)
+                      : this.platformRepository.getAppMeta(this.tabData.id, "swapUnlocked"),
+                  (outer, inner) => [...outer, inner]).share();
 
         validationStateChanges.subscribeTracked(this, (data: [string, AppValidityState, boolean]) => {
             const [code, validation, unlocked] = data;
@@ -282,8 +282,8 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
 
             const continuation: Promise<any> = (
                 this.viewMode === "code"
-                || !this.dataModel
-                || this.revisionChangingInProgress
+                    || !this.dataModel
+                    || this.revisionChangingInProgress
             ) ? this.resolveToModel(code) : Promise.resolve();
 
             continuation.then(() => {
@@ -807,10 +807,10 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
                 // Messages will be coming in but we need to unsubscribe at some point, so wait for the execution stream to emit
                     .takeUntil(this.executionStop.do(() => this.executionPreview.addMessage("Execution stopped")))
 
-                    // When done, turn off the UI flag
+                // When done, turn off the UI flag
                     .finally(() => this.isExecuting = false)
 
-                    // We need to catch the error here, because if we catch it in the end, this whole queue will terminate
+                // We need to catch the error here, because if we catch it in the end, this whole queue will terminate
                     .catch(err => {
                         const wrappedError = new ErrorWrapper(err).toString();
                         this.executionPreview.addMessage(wrappedError, "ERROR");
@@ -943,7 +943,7 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
 
     exportAppInFormat(format: "yaml" | "json") {
         const serialized = this.dataModel instanceof WorkflowModel
-            ? this.dataModel.serializeEmbedded(false) : this.dataModel.serialize();
+              ? this.dataModel.serializeEmbedded(false) : this.dataModel.serialize();
 
         this.exportApp.chooseExportFile(this.tabData.id, serialized, format);
     }

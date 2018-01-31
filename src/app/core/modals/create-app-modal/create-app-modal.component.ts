@@ -198,7 +198,7 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
                 private arvRepository: ArvadosRepositoryService,
                 private jsgit: JSGitService,
                 private native: NativeSystemService)
-                {
+    {
 
         super();
     }
@@ -229,7 +229,7 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
             cwlVersion: new FormControl("v1.0", [Validators.required]),
             type: new FormControl(this.appType, [Validators.required]),
             subdir: new FormControl(undefined, [Validators.required])
-       });
+        });
 
         this.forms["local"] = this.localForm;
         this.forms["remote"] = this.remoteForm;
@@ -423,9 +423,9 @@ export class CreateAppModalComponent extends DirectiveBase implements OnInit {
         }
 
         let adjustedsubdir = "/" + subdir.match(/^\/?(.*?)\/?$/)[1] + "/";
-	if (adjustedsubdir == "//") {
-	    adjustedsubdir = "/";
-	}
+        if (adjustedsubdir == "//") {
+            adjustedsubdir = "/";
+        }
 
         const path = repo + "#" + adjustedsubdir + fileBasename;
 

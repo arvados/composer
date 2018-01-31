@@ -65,7 +65,7 @@ export class FileEditorComponent extends DirectiveBase implements OnInit {
                 private fileRepository: FileRepositoryService,
                 private localRepository: LocalRepositoryService,
                 private status: StatusBarService,
-		private jsGit: JSGitService) {
+                private jsGit: JSGitService) {
         super();
     }
 
@@ -73,28 +73,27 @@ export class FileEditorComponent extends DirectiveBase implements OnInit {
         // Subscribe editor content to tabData code changes
         this.tabData.fileContent.subscribeTracked(this, (code: string) => {
             this.isLoading = false;
-	    this.setAppDirtyState(false);
-	    console.log("fileContent was updated");
+            this.setAppDirtyState(false);
             this.fileContent.setValue(code);
         }, (err) => {
             this.isLoading = false;
             this.unavailableError = new ErrorWrapper(err).toString() || "Error occurred while opening file";
         });
 
-	this.jsGit.getRepoContents(JSGitService.splitFileKey(this.tabData.id).repoUrl).subscribeTracked(this, () => {
-	    this.localRepository.getAppMeta(this.tabData.id, "isDirty").take(1).subscribe((isModified) => {
-		if (isModified) {
-		    console.log("not updating locally modified file "+this.tabData.id);
-		    return;
-		}
-		this.jsGit.getFileContent(this.tabData.id).take(1).subscribe(result => {
-		    console.log("updating remotely modified file "+this.tabData.id);
+        this.jsGit.getRepoContents(JSGitService.splitFileKey(this.tabData.id).repoUrl).subscribeTracked(this, () => {
+            this.localRepository.getAppMeta(this.tabData.id, "isDirty").take(1).subscribe((isModified) => {
+                if (isModified) {
+                    console.log("not updating locally modified file "+this.tabData.id);
+                    return;
+                }
+                this.jsGit.getFileContent(this.tabData.id).take(1).subscribe(result => {
+                    console.log("updating remotely modified file "+this.tabData.id);
                     this.fileContent.setValue(result);
-		    this.setAppDirtyState(false);
-		}, err => {
-		});
-	    });
-	});
+                    this.setAppDirtyState(false);
+                }, err => {
+                });
+            });
+        });
 
         // Set this app's ID to the code content service
         this.codeSwapService.appID = this.tabData.id;

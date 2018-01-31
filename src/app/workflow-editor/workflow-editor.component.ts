@@ -49,22 +49,22 @@ export function appSaverFactory(comp: WorkflowEditorComponent,
 @Component({
     selector: "ct-workflow-editor",
     providers: [EditorInspectorService, NotificationBarService, WorkflowEditorService, CodeSwapService, PlatformAppService,
-        {
-            provide: APP_SAVER_TOKEN,
-            useFactory: appSaverFactory,
-            deps: [WorkflowEditorComponent, IpcService, ModalService, PlatformRepositoryService, JSGitService]
-        }, {
-            provide: APP_META_MANAGER,
-            useFactory: appMetaManagerFactory,
-            deps: [WorkflowEditorComponent, LocalRepositoryService, PlatformRepositoryService]
-        },
-        {
-            provide: APP_MODEL,
-            useFactory: appModelFactory,
-            deps: [WorkflowEditorComponent]
-        }
+                {
+                    provide: APP_SAVER_TOKEN,
+                    useFactory: appSaverFactory,
+                    deps: [WorkflowEditorComponent, IpcService, ModalService, PlatformRepositoryService, JSGitService]
+                }, {
+                    provide: APP_META_MANAGER,
+                    useFactory: appMetaManagerFactory,
+                    deps: [WorkflowEditorComponent, LocalRepositoryService, PlatformRepositoryService]
+                },
+                {
+                    provide: APP_MODEL,
+                    useFactory: appModelFactory,
+                    deps: [WorkflowEditorComponent]
+                }
 
-    ],
+               ],
     styleUrls: ["../editor-common/app-editor-base/app-editor-base.scss"],
     templateUrl: "./workflow-editor.component.html"
 })
@@ -88,7 +88,7 @@ export class WorkflowEditorComponent extends AppEditorBase implements OnDestroy,
                 workbox: WorkboxService,
                 exportApp: ExportAppService,
                 executorService: ExecutorService,
-		jsGit: JSGitService) {
+                jsGit: JSGitService) {
         super(
             statusBar,
             notificationBar,
@@ -105,7 +105,7 @@ export class WorkflowEditorComponent extends AppEditorBase implements OnDestroy,
             workbox,
             exportApp,
             executorService,
-	    jsGit
+            jsGit
         );
 
         this.inspectorService = inspector;
