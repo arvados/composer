@@ -3,13 +3,8 @@ import {NotificationBarService} from "../../layout/notification-bar/notification
 import {StatusBarService} from "../../layout/status-bar/status-bar.service";
 import {ArvadosRepositoryService} from "../../repository/arvados-repository.service";
 import {ErrorWrapper} from "../helpers/error-wrapper";
-import {LocalRepositoryService} from "../../repository/local-repository.service";
-import {ModalService} from "../../ui/modal/modal.service";
-import {UpdatePlatformModalComponent} from "../modals/update-platform-modal/update-platform-modal.component";
-import {IpcService} from "../../services/ipc.service";
 import {GitHubRelease} from "../../../../electron/src/github-api-client/interfaces/github-release";
 import {noop} from "../../lib/utils.lib";
-import {AboutPageModalComponent} from "../modals/about-page-modal/about-page-modal.component";
 
 @Injectable()
 export class ArvadosGlobalService {
