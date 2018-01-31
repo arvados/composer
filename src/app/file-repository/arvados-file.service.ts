@@ -17,7 +17,7 @@ export class ArvadosFileRepositoryService {
     reloadPath(path: string): void { }
 
     saveFile(path: string, content: string): Promise<any> {
-        return this._jsgit.saveToGitRepo(path, content).take(1).toPromise();
+        return this._jsgit.saveToGitRepo(path, content, true).take(1).toPromise();
     }
 
     fetchFile(path: string, forceFetch = false): Promise<string> {

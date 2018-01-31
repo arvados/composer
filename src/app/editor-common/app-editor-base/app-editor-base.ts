@@ -151,7 +151,7 @@ export abstract class AppEditorBase extends DirectiveBase implements StatusContr
                 protected workbox: WorkboxService,
                 protected exportApp: ExportAppService,
                 public executor: ExecutorService,
-		protected jsGit: JSGitService) {
+		private jsGit: JSGitService) {
 
         super();
 

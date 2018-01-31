@@ -12,7 +12,7 @@ export class ArvadosAppSavingService implements AppSaver {
     }
 
     save(appID: string, content: string, revisionNote?: string): Promise<any> {
-        return this._jsgit.saveToGitRepo(appID, content).toPromise();
+        return this._jsgit.saveToGitRepo(appID, content, true).toPromise();
     }
 
 }

@@ -28,20 +28,24 @@ export class JSGitService {
         });
     }
 
-    private cloneRepo(repoUrl: string) {
+    private cloneRepo(repoUrl: string) : Observable<any> {
         const repoObj = this.repo[repoUrl];
-	this.repo[repoUrl]["clone"]('refs/heads/master', 1, (data) => {
-	    if (data instanceof Error) {
-		repoObj["contents"].next(data);
-		return;
-	    }
-            if (!data) {
-                return;
-            }
-            repoObj["resolveRepo"]('refs/heads/master', (res) => {
-                repoObj["contents"].next(res);
+        return Observable.create((observer) => {
+	    this.repo[repoUrl]["clone"]('refs/heads/master', 1, (data) => {
+		if (data instanceof Error) {
+		    observer.error(data);
+		    observer.complete();
+		    return;
+		}
+		if (!data) {
+                    return;
+		}
+		repoObj["resolveRepo"]('refs/heads/master', (res) => {
+		    observer.next(res);
+		    observer.complete();
+		});
             });
-        });
+	});
     }
 
     private createRepo(repoUrl: string) {
@@ -75,8 +79,10 @@ export class JSGitService {
         if (!this.repo[repoUrl]) {
             this.createRepo(repoUrl);
         }
-	this.cloneRepo(repoUrl);
-        return this.repo[repoUrl]["contents"];
+	return this.cloneRepo(repoUrl).mergeMap((data) => {
+	    this.repo[repoUrl]["contents"].next(data);
+	    return this.repo[repoUrl]["contents"];
+	});
     }
 
     getLoadedRepos(): Observable<Array<string>> {
@@ -102,7 +108,7 @@ export class JSGitService {
         });
     }
 
-    public saveToGitRepo(fileKey: string, content: string): Observable<Object> {
+    public saveToGitRepo(fileKey: string, content: string, rebase: boolean): Observable<Object> {
         const self = this;
         const sp = JSGitService.splitFileKey(fileKey);
         const repoObj = this.repo[sp.repoUrl];
@@ -119,7 +125,7 @@ export class JSGitService {
             };
             const dataForCommit = [fileToCommit];
 	    const metadata = {
-		message: "commit message goes here",
+		message: "Committed using Arvados Composer",
 		author: {
 		    name: this.userCred.user.first_name + " " + this.userCred.user.last_name,
 		    email: this.userCred.user.email
@@ -127,13 +133,27 @@ export class JSGitService {
 	    };
             repoObj["commit"]('refs/heads/master', dataForCommit, metadata, (feedback) => {
                 repoObj["resolveRepo"]('refs/heads/master', (res) => {
-                    repoObj["contents"].next(res);
                     repoObj["push"]('refs/heads/master', (feedback) => {
 			if (feedback === null) {
 			    observer.next(content);
+			    repoObj["contents"].next(res);
 			    observer.complete();
 			} else {
-			    self.notificationBar.showNotification(feedback);
+			    // Push was rejected, try updating and then saving again.
+			    if (rebase) {
+				console.log("Rebasing");
+				//this.getRepoContents(sp.repoUrl).take(1).subscribe(() => {
+				this.cloneRepo(sp.repoUrl).subscribe(() => {
+				    this.saveToGitRepo(fileKey, content, false).subscribe(() => {
+					console.log("Done");
+					observer.next(content);
+					observer.complete();
+				    })
+				});
+			    } else {
+				self.notificationBar.showNotification(feedback);
+				observer.complete();
+			    }
 			}
                     });
                 });

@@ -364,8 +364,6 @@ export class ArvadosRepositoryService {
     }
 
     getAppMeta<T>(appID: string, key?: string): Observable<AppMeta> {
-	console.log("getAppMeta "+appID+" "+key);
-	console.log(this.appMeta);
         return this.appMeta.map(meta => {
 
                 if (meta === null) {
@@ -374,8 +372,6 @@ export class ArvadosRepositoryService {
 
                 const data = meta[appID];
 
-	    console.log("getAppMeta inner");
-	    console.log(meta);
             if (key && data) {
                     return data[key];
                 }
@@ -386,8 +382,6 @@ export class ArvadosRepositoryService {
     }
 
     patchAppMeta(appID: string, key: keyof AppMeta, value: any): Promise<any> {
-	console.log("patching "+appID+" "+key+" "+value);
-	console.log(this.appMeta);
         return this.appMeta.take(1).map((meta) => {
 
             if (meta === null) {
