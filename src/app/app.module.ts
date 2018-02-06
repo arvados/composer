@@ -10,6 +10,7 @@ import {PlatformConnectionService} from "./core/auth/platform-connection.service
 import {CoreModule} from "./core/core.module";
 import {DataGatewayService} from "./core/data-gateway/data-gateway.service";
 import {GlobalService} from "./core/global/global.service";
+import {ArvadosGlobalService} from "./core/global/arvados-global.service";
 import {CWLModule} from "./cwl/cwl.module";
 import {EditorCommonModule} from "./editor-common/editor-common.module";
 import {FileRepositoryService} from "./file-repository/file-repository.service";
@@ -41,38 +42,40 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
 @NgModule({
     providers: [
         ConfigurationService,
+        ArvadosRepositoryService,
         {
             provide: CREDENTIALS_REGISTRY,
-            useClass: ArvadosRepositoryService
+            useExisting: ArvadosRepositoryService
         },
         AuthService,
         DataGatewayService,
         DomEventService,
         ExportAppService,
         FormBuilder,
-        GlobalService,
         IpcWebService,
         IpcService,
         JavascriptEvalService,
-
-        ArvadosRepositoryService,
         ArvadosFileRepositoryService,
-	SchemaSaladResolver,
+        SchemaSaladResolver,
         {
             provide: FileRepositoryService,
-            useClass: ArvadosFileRepositoryService
+            useExisting: ArvadosFileRepositoryService
         },
         {
             provide: LocalRepositoryService,
-            useClass: ArvadosRepositoryService
+            useExisting: ArvadosRepositoryService
         },
         {
             provide: PlatformRepositoryService,
-            useClass: ArvadosRepositoryService
+            useExisting: ArvadosRepositoryService
+        },
+        {
+            provide: GlobalService,
+            useClass: ArvadosGlobalService
         },
 
-        LocalRepositoryService,
-        PlatformRepositoryService,
+        //LocalRepositoryService,
+        //PlatformRepositoryService,
         OpenExternalFileService,
         ModalService,
         PlatformConnectionService,
@@ -100,7 +103,7 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
         ToolEditorModule,
         WorkflowEditorModule,
         WebstubModule,
-//        NativeModule,
+        //NativeModule,
         CookieModule.forRoot(),
     ],
 })
@@ -118,7 +121,6 @@ export class AppModule {
         if (environment.browser) {
             console.log("Starting");
             this._authService.getActive().subscribe((cred) => {
-                console.log("Checked cred"+cred);
                 if (!cred) {
                     rootComponent = "login";
                     InitComponent = LoginComponent;

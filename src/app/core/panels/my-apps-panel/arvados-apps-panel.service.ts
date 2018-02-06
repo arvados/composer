@@ -17,6 +17,7 @@ import {GlobalService} from "../../global/global.service";
 import {WorkboxService} from "../../workbox/workbox.service";
 import {AppsPanelService} from "../common/apps-panel.service";
 import {AppHelper} from "../../helpers/AppHelper";
+import {ErrorWrapper} from "../../helpers/error-wrapper";
 import {getDragImageClass, getDragTransferDataType} from "../../../ui/tree-view/tree-view-utils";
 import {JSGitService} from "../../../services/js-git/js-git.service";
 
@@ -66,7 +67,12 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                 return items.map(item => {
                     const children_sub: ReplaySubject<TreeNode<any>[]> = new ReplaySubject(1);
 
+                    item["loaded"] = false;
                     item["start_load"] = function() {
+                        if (item["loaded"]) {
+                            return;
+                        }
+
                         children_sub.next([{
                             id: "loading",
                             data: null,
@@ -81,22 +87,37 @@ export class ArvadosAppsPanelService extends AppsPanelService {
 
                         const repoUrl = item["url"];
                         self._jsgit.getRepoContents(repoUrl).subscribe((dirents) => {
+                            if (dirents instanceof Error) {
+                                self.notificationBar.showNotification("Cannot get repository "+repoUrl+". " + new ErrorWrapper(dirents));
+                                children_sub.next([{
+                                    id: "error",
+                                    data: null,
+                                    type: "loading",
+                                    label: "(error)",
+                                    isExpandable: false,
+                                    isExpanded: Observable.of(false),
+                                    icon: "",
+                                    iconExpanded: "",
+                                    children: Observable.empty()
+                                }]);
+                                return;
+                            }
                             function load_dir(dirname: string): Observable<TreeNode<any>[]> {
                                 const pending = [];
 
-				if (dirname === "/" && Object.keys(dirents[dirname].body).length === 0) {
-				    pending.push(Observable.of({
-					id: "empty",
-					data: null,
-					type: "loading",
-					label: "(empty)",
-					isExpandable: false,
-					isExpanded: Observable.of(false),
-					icon: "",
-					iconExpanded: "",
-					children: Observable.empty()
-				    }));
-				}
+                                if (dirname === "/" && Object.keys(dirents[dirname].body).length === 0) {
+                                    pending.push(Observable.of({
+                                        id: "empty",
+                                        data: null,
+                                        type: "loading",
+                                        label: "(empty)",
+                                        isExpandable: false,
+                                        isExpanded: Observable.of(false),
+                                        icon: "",
+                                        iconExpanded: "",
+                                        children: Observable.empty()
+                                    }));
+                                }
 
                                 for (const filename in dirents[dirname].body) {
                                     const ent = dirents[dirname].body[filename];
@@ -150,11 +171,11 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                                                 icon,
                                                 iconExpanded: "",
                                                 children: Observable.empty(),
-						dragEnabled: (cwltype === "Workflow" || cwltype === "CommandLineTool"),
-						dragTransferData: {name: key, type: "cwl"},
-						dragDropZones: ["graph-editor"],
-						dragLabel: filename,
-						dragImageClass: cwltype === "CommandLineTool" ? "icon-command-line-tool" : "icon-workflow",
+                                                dragEnabled: (cwltype === "Workflow" || cwltype === "CommandLineTool"),
+                                                dragTransferData: {name: key, type: "cwl"},
+                                                dragDropZones: ["graph-editor"],
+                                                dragLabel: filename,
+                                                dragImageClass: cwltype === "CommandLineTool" ? "icon-command-line-tool" : "icon-workflow",
                                             };
                                         }).take(1));
                                     }
@@ -163,6 +184,7 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                             }
 
                             load_dir("/").subscribe((newchildren) => {
+                                item["loaded"] = true;
                                 children_sub.next(newchildren);
                             });
                         });
@@ -177,6 +199,11 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                         isExpanded: self.expandedNodes.map(list => list.indexOf(item["url"]) !== -1),
                         children: children_sub
                     });
+                    app.isExpanded.subscribe((val) => {
+                        if (val && !app.data["loaded"]) {
+                            app.data.start_load();
+                        }
+                    });
 
                     return app;
                 });
@@ -184,7 +211,7 @@ export class ArvadosAppsPanelService extends AppsPanelService {
     }
 
     reloadPlatformData() {
-        //this.global.reloadPlatformData();
+        this.global.reloadPlatformData();
     }
 
     updateLocalNodeExpansionState(path: string, state: boolean): void {

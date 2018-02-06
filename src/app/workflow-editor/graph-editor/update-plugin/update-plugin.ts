@@ -89,6 +89,8 @@ export class UpdatePlugin extends PluginBase {
      */
     private getStepUpdates() {
 
+        return; // noop
+        /*
         this.updateStatusProcess       = this.statusBar.startProcess("Checking for app updates…");
         const nestedAppRevisionlessIDs = this.workflow.model.steps
             .map(step => {
@@ -145,6 +147,7 @@ export class UpdatePlugin extends PluginBase {
                 }
                 this.cleanUp();
             });
+*/
     }
 
     destroy() {

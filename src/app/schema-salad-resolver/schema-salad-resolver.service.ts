@@ -12,22 +12,22 @@ export class SchemaSaladResolver {
     }
 
     static isUrl(s) {
-	const regexp = /^(ftp|http|https):\/\/.*/i;
-	return regexp.test(s);
+        const regexp = /^(ftp|http|https):\/\/.*/i;
+        return regexp.test(s);
     }
 
     static isLocalFile(filepath: string) {
-	const isWin = /^win/.test(process.platform);
-	if (isWin) {
+        const isWin = /^win/.test(process.platform);
+        if (isWin) {
             return (/^[a-z]:\\.+$/i).test(filepath);
-	}
+        }
 
-	return filepath.startsWith("/");
+        return filepath.startsWith("/");
     }
 
     traverse(data, source, root, rootPath, graph = {}, traversedExternalPaths?) {
 
-	return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             const future = [];
 
@@ -35,72 +35,72 @@ export class SchemaSaladResolver {
 
             for (let key in data) {
 
-		const entry = data[key];
+                const entry = data[key];
 
-		const isExternalResource = typeof entry === "string" && [
+                const isExternalResource = typeof entry === "string" && [
                     "run",
                     "$mixin",
                     "$import",
                     "$include"
-		].indexOf(key) !== -1;
+                ].indexOf(key) !== -1;
 
-		const isGraphReference    = isExternalResource && key === "run" && entry.startsWith("#");
-		const isGraphSubreference = !isExternalResource && typeof entry === "string" && entry.startsWith("#") && entry.indexOf("/") !== -1;
+                const isGraphReference    = isExternalResource && key === "run" && entry.startsWith("#");
+                const isGraphSubreference = !isExternalResource && typeof entry === "string" && entry.startsWith("#") && entry.indexOf("/") !== -1;
 
-		if (isGraphSubreference && isResolvableGraph) {
+                if (isGraphSubreference && isResolvableGraph) {
 
                     const [graphKey, ...rest] = entry.substr(1).split("/");
                     const remains             = rest.join("/");
 
                     if (graph[graphKey]) {
-			data[key] = remains;
-			future.push(Promise.resolve(1));
+                        data[key] = remains;
+                        future.push(Promise.resolve(1));
                     } else {
-			future.push(Promise.reject(new Error(`Could not dereference a non-existing $graph path for “${entry}”`)));
+                        future.push(Promise.reject(new Error(`Could not dereference a non-existing $graph path for “${entry}”`)));
                     }
 
 
-		} else if (isGraphReference) {
+                } else if (isGraphReference) {
                     const embedding = new Promise((resolve, reject) => {
-			const graphID = entry.slice(1);
-			if (graph[graphID]) {
+                        const graphID = entry.slice(1);
+                        if (graph[graphID]) {
 
                             Object.assign(data, {
-				[key]: graph[graphID]
+                                [key]: graph[graphID]
                             });
 
                             resolve();
                             return;
-			}
+                        }
 
-			reject(new Error(`Graph id “${entry}” has no corresponding $graph entry`));
+                        reject(new Error(`Graph id “${entry}” has no corresponding $graph entry`));
                     });
 
                     future.push(embedding);
-		} else if (isExternalResource) {
+                } else if (isExternalResource) {
                     future.push(new Promise((resolve, reject) => {
 
-			let externalPath = source.split("/").slice(0, -1).concat(entry).join("/");
+                        let externalPath = source.split("/").slice(0, -1).concat(entry).join("/");
 
-			if (SchemaSaladResolver.isUrl(entry) || (!SchemaSaladResolver.isUrl(source) && SchemaSaladResolver.isLocalFile(entry))) {
+                        if (SchemaSaladResolver.isUrl(entry) || (!SchemaSaladResolver.isUrl(source) && SchemaSaladResolver.isLocalFile(entry))) {
                             externalPath = entry;
-			}
+                        }
 
-			let patchFn;
+                        let patchFn;
 
-			// Each root external resource pass Set to nesting structures to avoid infinite recursion
-			const traversed = traversedExternalPaths || new Set<string>([rootPath]);
+                        // Each root external resource pass Set to nesting structures to avoid infinite recursion
+                        const traversed = traversedExternalPaths || new Set<string>([rootPath]);
 
-			// Avoid recursive nesting
-			if (traversed.has(externalPath)) {
+                        // Avoid recursive nesting
+                        if (traversed.has(externalPath)) {
                             throw new RecursiveNestingError(`${externalPath}`);
-			}
+                        }
 
-			traversed.add(externalPath);
+                        traversed.add(externalPath);
 
-			this.resolve(externalPath, {
+                        this.resolve(externalPath, {
                             type: key === "$include" ? "text" : "json"
-			}, rootPath, traversed).then((content) => {
+                        }, rootPath, traversed).then((content) => {
                             switch (key) {
 
                             case "$import":
@@ -137,54 +137,54 @@ export class SchemaSaladResolver {
                             }
 
                             resolve(patchFn);
-			}, reject);
+                        }, reject);
                     }));
-		} else if (entry && typeof entry === "object") {
+                } else if (entry && typeof entry === "object") {
                     future.push(this.traverse(entry, source, root, rootPath, graph, traversedExternalPaths));
-		} else {
+                } else {
                     future.push(new Promise(resolve => resolve()));
-		}
+                }
             }
 
             Promise.all(future).then(() => {
 
-		Object.keys(data).forEach(k => {
+                Object.keys(data).forEach(k => {
 
                     if (data[k] !== null && typeof data[k] === "object" && !Array.isArray(data[k]) && data[k]["$include"]) {
-			data[k] = data[k]["$include"];
+                        data[k] = data[k]["$include"];
                     }
-		});
+                });
 
-		resolve(data);
+                resolve(data);
             }, reject);
-	});
+        });
     }
 
     parseJSON(content, source, rootPath, root?, graph?, traversedExternalPaths?) {
-	return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const data = yaml.safeLoad(content, {
-		filename: source,
-		onWarning: (warning) => {
+                filename: source,
+                onWarning: (warning) => {
                     console.log(warning);
-		},
-		json: true
+                },
+                json: true
             } as LoadOptions) || {};
 
             if (typeof root === "string") {
-		root = yaml.safeLoad(root, {json: true} as LoadOptions);
+                root = yaml.safeLoad(root, {json: true} as LoadOptions);
             }
 
             if (!graph) {
-		graph = {};
-		if (data.$graph && Array.isArray(data.$graph)) {
+                graph = {};
+                if (data.$graph && Array.isArray(data.$graph)) {
                     graph = data.$graph.reduce((acc, entry) => {
-			return Object.assign(acc, {[entry.id]: entry});
+                        return Object.assign(acc, {[entry.id]: entry});
                     }, {});
-		}
+                }
             }
 
             this.traverse(data, source, root, rootPath, graph, traversedExternalPaths).then(resolve, reject);
-	});
+        });
     }
 
     /**
@@ -196,42 +196,42 @@ export class SchemaSaladResolver {
      */
     resolve(filename, options, rootPath, traversedExternalPaths) {
 
-	options = Object.assign({
+        options = Object.assign({
             type: "json"
-	}, options);
+        }, options);
 
-	return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             let call = new Promise((resolve, reject) => {
-		/*if (isUrl(filename)) {
+                /*if (isUrl(filename)) {
                   request(filename, (err, response, body) => {
                   if (err) return reject(err);
                   resolve(body);
                   });
-		  } else {
+                  } else {
                   fs.readFile(filename, {encoding: "utf8", flag: "r"}, (err, data) => {
                   if (err) return reject(err);
 
                   resolve(data);
                   });
-		  }*/
-		this.fileRepo.fetchFile(filename).then((data) => {
-		    resolve(data);
-		});
+                  }*/
+                this.fileRepo.fetchFile(filename).then((data) => {
+                    resolve(data);
+                });
             });
 
             call.then((body) => {
-		if (options.type === "json") {
+                if (options.type === "json") {
                     try {
-			this.parseJSON(body, filename, rootPath, body, null, traversedExternalPaths).then(resolve, reject);
+                        this.parseJSON(body, filename, rootPath, body, null, traversedExternalPaths).then(resolve, reject);
                     } catch (ex) {
-			reject(ex);
+                        reject(ex);
                     }
-		} else {
+                } else {
                     resolve(body);
-		}
+                }
             }, reject);
-	});
+        });
     }
 
     resolveContent(content, path): Promise<Object> {

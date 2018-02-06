@@ -27,7 +27,7 @@ export class ArvadosRepositoryService {
     private expandedNodes: ReplaySubject<string[]>    = new ReplaySubject(1);
     private openTabs: ReplaySubject<TabData<any>[]>   = new ReplaySubject(1);
     private recentApps: ReplaySubject<RecentAppTab[]> = new ReplaySubject(1);
-    private appMeta: ReplaySubject<AppMeta[]>         = new ReplaySubject(1);
+    private appMeta: ReplaySubject<Object>            = new ReplaySubject(1);
 
     private credentials: ReplaySubject<AuthCredentials[]>             = new ReplaySubject(1);
     private activeCredentials: ReplaySubject<AuthCredentials>         = new ReplaySubject(1);
@@ -35,7 +35,8 @@ export class ArvadosRepositoryService {
     private selectedAppsPanel: ReplaySubject<"myApps" | "publicApps"> = new ReplaySubject(1);
     private publicAppsGrouping: ReplaySubject<"toolkit" | "category"> = new ReplaySubject(1);
 
-    private httpOptions: RequestOptions;
+    private gitsubscribed = false;
+    private gitRepos: ReplaySubject<Object[]> = new ReplaySubject(1);
 
     private repo_uuid = {};
 
@@ -61,29 +62,51 @@ export class ArvadosRepositoryService {
         this.listen("recentApps").subscribe(this.recentApps);
         //this.listen("openProjects").subscribe(this.openProjects);
         this.listen("expandedNodes").subscribe(this.expandedNodes);
-        this.listen("appMeta").subscribe(this.appMeta);
+        //this.listen("appMeta").subscribe(this.appMeta);
+
+        this.openTabs.next([]);
+        this.appMeta.next({});
 
         console.log("checking token "+this.getToken("api_token"));
         if (this.storeToken("api_token") || this.getToken("api_token")) {
             console.log("using token "+ this.getToken("api_token"));
             _config.configuration.subscribe((conf) => {
                 const token = this.getToken("api_token");
+                const apiEndPoint = conf['apiEndPoint'];
                 const headers = new Headers({ "Authorization": "OAuth2 " + token });
-		const apiEndPoint = conf['apiEndPoint'];
-                this.httpOptions = new RequestOptions({ "headers": headers });
-		this._http.get(apiEndPoint+"/arvados/v1/users/current", this.httpOptions).subscribe(response => {
-		    const u = response.json();
-                    this.setActiveCredentials(new AuthCredentials(conf['apiEndPoint']+"/0123456789abcd", token, {
-			username: u["username"],
-			first_name: u["first_name"],
-			last_name: u["last_name"],
-			email: u["email"]
+                const httpOptions = new RequestOptions({ "headers": headers });
+                this._http.get(apiEndPoint+"/arvados/v1/users/current", httpOptions).subscribe(response => {
+                    const u = response.json();
+                    this.setActiveCredentials(new AuthCredentials(apiEndPoint+"/0123456789abcd", token, {
+                        username: u["username"],
+                        first_name: u["first_name"],
+                        last_name: u["last_name"],
+                        email: u["email"]
                     }));
-		});
+                });
             });
         } else {
             this.setActiveCredentials(null);
         }
+
+        this.getActiveCredentials().subscribe(auth => {
+            if (auth !== null) {
+                this.refreshGitRepos(auth);
+            }
+        });
+    }
+
+    refreshGitRepos(auth: AuthCredentials) {
+        const apiEndPoint = auth.url.substr(0, auth.url.length - 15);
+        const headers = new Headers({ "Authorization": "OAuth2 " + auth.token });
+        const httpOptions = new RequestOptions({ "headers": headers });
+        this._http.get(apiEndPoint+"/arvados/v1/repositories", httpOptions).subscribe(response => {
+            this.gitRepos.next(response.json()["items"].map(i => {
+                this.repo_uuid[i["clone_urls"][1]] = i["uuid"];
+                return {name: i["name"],
+                        url: i["clone_urls"][1]}
+            }));
+        });
     }
 
     getCredentials(): Observable<AuthCredentials[]> {
@@ -91,7 +114,6 @@ export class ArvadosRepositoryService {
     }
 
     getActiveCredentials(): Observable<AuthCredentials> {
-        console.log("getit");
         return this.activeCredentials;
     }
 
@@ -137,16 +159,7 @@ export class ArvadosRepositoryService {
     }
 
     getGitRepos(): Observable<Object[]> {
-        return this._config.configuration.flatMap((conf) => {
-            const apiEndPoint = conf['apiEndPoint'];
-            return this._http.get(apiEndPoint+"/arvados/v1/repositories", this.httpOptions).map(response => {
-                return response.json()["items"].map(i => {
-                    this.repo_uuid[i["clone_urls"][1]] = i["uuid"];
-                    return {name: i["name"],
-                            url: i["clone_urls"][1]}
-                });
-            });
-        });
+        return this.gitRepos;
     }
 
     getRepoUuid(repoUrl: string): string {
@@ -181,7 +194,12 @@ export class ArvadosRepositoryService {
     }
 
     fetch(): Observable<any> {
-        return this.ipc.request("fetchPlatformData");
+        this.getActiveCredentials().take(1).subscribe(auth => {
+            if (auth !== null) {
+                this.refreshGitRepos(auth);
+            }
+        });
+        return this.gitRepos;
     }
 
     getOpenProjects(): Observable<Project[]> {
@@ -217,9 +235,10 @@ export class ArvadosRepositoryService {
             });
 
             if (modified) {
-                this.patch({
-                    expandedNodes: Array.from(patch)
-                });
+                //this.patch({
+                //    expandedNodes: Array.from(patch)
+                //});
+                this.expandedNodes.next(Array.from(patch));
             }
 
         });
@@ -345,28 +364,45 @@ export class ArvadosRepositoryService {
     getAppMeta<T>(appID: string, key?: string): Observable<AppMeta> {
         return this.appMeta.map(meta => {
 
-                if (meta === null) {
-                    return meta;
-                }
+            if (meta === null) {
+                return meta;
+            }
 
-                const data = meta[appID];
+            const data = meta[appID];
 
-                if (key && data) {
-                    return data[key];
-                }
+            if (key && data) {
+                return data[key];
+            }
 
-                return data;
+            return data;
 
-            });
+        });
     }
 
     patchAppMeta(appID: string, key: keyof AppMeta, value: any): Promise<any> {
-        return this.ipc.request("patchAppMeta", {
-            profile: "user",
-            appID,
-            key,
-            value
+        return this.appMeta.take(1).map((meta) => {
+
+            if (meta === null) {
+                return meta;
+            }
+
+            if (meta[appID] === undefined) {
+                meta[appID] = {};
+            }
+
+            meta[appID][key] = value;
+
+            this.appMeta.next(meta);
+
+            return meta;
         }).toPromise();
+
+        /*return this.ipc.request("patchAppMeta", {
+          profile: "user",
+          appID,
+          key,
+          value
+          }).toPromise();*/
     }
 
     //Local stubs

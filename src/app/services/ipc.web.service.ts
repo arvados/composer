@@ -65,12 +65,12 @@ export class IpcWebControler {
 
     // data == file path
     public getLocalFileContent(data: any): Observable<any> {
-        console.log("getLocalFileContent");
+        console.log("not implemented: getLocalFileContent");
         console.log(data);
         return Observable.empty(null);
     }
     public saveFileContent(data): Observable<any> {
-        console.log("saveFileContent");
+        console.log("not implemented: saveFileContent");
         console.log(data);
         return Observable.empty(null);
     }

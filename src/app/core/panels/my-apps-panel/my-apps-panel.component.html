@@ -2,11 +2,34 @@
 <ct-search-field [formControl]="searchContent"
                  [placeholder]="'Search Apps'"></ct-search-field>
 
+-->
 <div>
+  <!--
     <button class="btn btn-link app-sources-btn" data-test="add-sources-button"
             (click)="openAddAppSourcesDialog()">
         <i class="fa fa-fw fa-plus"></i> Open a Project
     </button>
+    -->
+
+  <span class="pull-right">
+        <ct-generic-dropdown-menu [ct-menu]="fileActionsMenu" menuAlign="left"
+                                  #fileActionsDropDown>
+
+            <button type="button"
+                    class="btn btn-unstyled"
+                    data-test="fileActions-menu-button"
+                    (click)="fileActionsDropDown.toggleMenu()">
+              <i class="fa fa-fw fa-chevron-down"></i>
+            </button>
+
+        </ct-generic-dropdown-menu>
+
+        <ng-template #fileActionsMenu class="mr-1">
+          <ul class="list-unstyled" (click)="fileActionsDropDown.hide()">
+            <li data-test="fileActions-button"><a href="{{workbenchUrl}}/repositories" target="_blank">Manage Repositories</a></li>
+            </ul>
+        </ng-template>
+        </span>
 
     <button class="btn btn-link sync-btn"
             data-test="sync-button"
@@ -15,29 +38,7 @@
             (click)="syncFileTree()">
         <i class="fa fa-refresh"></i>
     </button>
-</div>
--->
 
-<div>
-  <span class="pull-right">
-        <ct-generic-dropdown-menu [ct-menu]="fileActionsMenu" menuAlign="left"
-                                  #fileActionsDropDown>
-
-            <button type="button"
-                    class="btn btn-unstyled"
-                    data-test="settings-menu-button"
-                    (click)="fileActionsDropDown.toggleMenu()">
-              <i class="fa fa-fw fa-chevron-down"></i>
-            </button>
-
-        </ct-generic-dropdown-menu>
-
-        <ng-template #fileActionsMenu class="mr-1">
-          <ul class="list-unstyled" (click)="settingsDropDown.hide()">
-                <li data-test="settings-button"><a href="{{workbenchUrl}}/repositories" target="_blank">Manage Repositories</a></li>
-            </ul>
-        </ng-template>
-        </span>
 </div>
 
 <div class="scroll-container">

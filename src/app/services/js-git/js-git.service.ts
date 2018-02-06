@@ -1,4 +1,3 @@
-
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
 import { ReplaySubject } from "rxjs/ReplaySubject";
@@ -7,6 +6,8 @@ import * as HighLevel from "js-git/mixins/high-level";
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
 import {AuthService} from "../../auth/auth.service"
 
+import {NotificationBarService} from "../../layout/notification-bar/notification-bar.service";
+
 @Injectable()
 export class JSGitService {
     private userCred;
@@ -14,35 +15,44 @@ export class JSGitService {
     private httpOptions;
     private repo = {};
 
-    constructor(private auth: AuthService, private _http: Http) {
+    constructor(private auth: AuthService,
+                private _http: Http,
+                private notificationBar: NotificationBarService) {
         this.auth.getActive().subscribe((active) => {
             if (active) {
-		this.userCred = active;
+                this.userCred = active;
             } else {
                 this.userCred = null;
             }
         });
     }
 
-    private createRepo(repoUrl: string): Observable<any> {
+    private cloneRepo(repoUrl: string) : Observable<any> {
+        const repoObj = this.repo[repoUrl];
+        return Observable.create((observer) => {
+            this.repo[repoUrl]["clone"]('refs/heads/master', 1, (data) => {
+                if (data instanceof Error) {
+                    observer.error(data);
+                    observer.complete();
+                    return;
+                }
+                if (!data) {
+                    return;
+                }
+                repoObj["resolveRepo"]('refs/heads/master', (res) => {
+                    observer.next(res);
+                    observer.complete();
+                });
+            });
+        });
+    }
+
+    private createRepo(repoUrl: string) {
         const repoObj = {};
         HighLevel(repoObj, this.userCred.user.username, this.userCred.token, repoUrl);
 
         repoObj["contents"] = new ReplaySubject(1);
         this.repo[repoUrl] = repoObj;
-
-	this.repo[repoUrl]["clone"]('refs/heads/master', 1, (data) => {
-
-	    console.log(data);
-            if (!data) {
-                return;
-            }
-            repoObj["resolveRepo"]('refs/heads/master', (res) => {
-                console.log(res);
-                repoObj["contents"].next(res);
-            });
-        });
-        return repoObj["contents"];
     }
 
     static splitFileKey(fileKey: string): {repoUrl: string, path: string} {
@@ -65,11 +75,13 @@ export class JSGitService {
     }
 
     public getRepoContents(repoUrl): Observable<any> {
-        if (this.repo[repoUrl]) {
-            return this.repo[repoUrl]["contents"];
-        } else {
-            return this.createRepo(repoUrl);
+        if (!this.repo[repoUrl]) {
+            this.createRepo(repoUrl);
         }
+        return this.cloneRepo(repoUrl).mergeMap((data) => {
+            this.repo[repoUrl]["contents"].next(data);
+            return this.repo[repoUrl]["contents"];
+        });
     }
 
     getLoadedRepos(): Observable<Array<string>> {
@@ -95,7 +107,7 @@ export class JSGitService {
         });
     }
 
-    public saveToGitRepo(fileKey: string, content: string): Observable<Object> {
+    public saveToGitRepo(fileKey: string, content: string, rebase: boolean): Observable<Object> {
         const self = this;
         const sp = JSGitService.splitFileKey(fileKey);
         const repoObj = this.repo[sp.repoUrl];
@@ -111,20 +123,37 @@ export class JSGitService {
                 content
             };
             const dataForCommit = [fileToCommit];
-	    const metadata = {
-		message: "commit message goes here",
-		author: {
-		    name: this.userCred.user.first_name + " " + this.userCred.user.last_name,
-		    email: this.userCred.user.email
-		}
-	    };
+            const metadata = {
+                message: "Committed using Arvados Composer",
+                author: {
+                    name: this.userCred.user.first_name + " " + this.userCred.user.last_name,
+                    email: this.userCred.user.email
+                }
+            };
             repoObj["commit"]('refs/heads/master', dataForCommit, metadata, (feedback) => {
                 repoObj["resolveRepo"]('refs/heads/master', (res) => {
-                    repoObj["contents"].next(res);
                     repoObj["push"]('refs/heads/master', (feedback) => {
-			console.log(feedback);
-			observer.next(content);
-			observer.complete();
+                        if (feedback === null) {
+                            observer.next(content);
+                            repoObj["contents"].next(res);
+                            observer.complete();
+                        } else {
+                            // Push was rejected, try updating and then saving again.
+                            if (rebase) {
+                                console.log("Rebasing");
+                                //this.getRepoContents(sp.repoUrl).take(1).subscribe(() => {
+                                this.cloneRepo(sp.repoUrl).subscribe(() => {
+                                    this.saveToGitRepo(fileKey, content, false).subscribe(() => {
+                                        console.log("Done");
+                                        observer.next(content);
+                                        observer.complete();
+                                    })
+                                });
+                            } else {
+                                self.notificationBar.showNotification(feedback);
+                                observer.complete();
+                            }
+                        }
                     });
                 });
             });

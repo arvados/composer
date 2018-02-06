@@ -82,7 +82,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
         this.attachExpansionStateSaving();
         this.listenForAppOpening();
         this.listenForContextMenu();
-        this.listenForGitRepoExpand();
+        //this.listenForGitRepoExpand();
 
         this.service.rootFolders.subscribe(folders => {
             this.rootFolders = folders;
@@ -110,11 +110,11 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
     }
 
     syncFileTree() {
-        this.service.localFolders.subscribeTracked(this, (folders) => {
+        /*this.service.localFolders.subscribeTracked(this, (folders) => {
             folders.forEach((folder) => {
                 this.fileRepository.reloadPath(folder);
             });
-        });
+            });*/
         this.localRepository.getActiveCredentials().take(1).subscribeTracked(this, (creds) => {
             if (creds) {
                 this.service.reloadPlatformData();

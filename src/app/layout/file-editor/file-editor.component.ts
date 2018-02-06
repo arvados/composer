@@ -9,6 +9,7 @@ import {DirectiveBase} from "../../util/directive-base/directive-base";
 import {StatusBarService} from "../status-bar/status-bar.service";
 import {LocalRepositoryService} from "../../repository/local-repository.service";
 import {ErrorWrapper} from "../../core/helpers/error-wrapper";
+import {JSGitService} from "../../services/js-git/js-git.service";
 
 @Component({
     selector: "ct-file-editor",
@@ -27,7 +28,7 @@ import {ErrorWrapper} from "../../core/helpers/error-wrapper";
                 </button>
             </div>
         </ct-action-bar>
-        
+
         <div class="editor-layout">
             <ct-circular-loader *ngIf="isLoading"></ct-circular-loader>
 
@@ -63,7 +64,8 @@ export class FileEditorComponent extends DirectiveBase implements OnInit {
                 private codeSwapService: CodeSwapService,
                 private fileRepository: FileRepositoryService,
                 private localRepository: LocalRepositoryService,
-                private status: StatusBarService) {
+                private status: StatusBarService,
+                private jsGit: JSGitService) {
         super();
     }
 
@@ -71,10 +73,26 @@ export class FileEditorComponent extends DirectiveBase implements OnInit {
         // Subscribe editor content to tabData code changes
         this.tabData.fileContent.subscribeTracked(this, (code: string) => {
             this.isLoading = false;
+            this.setAppDirtyState(false);
             this.fileContent.setValue(code);
         }, (err) => {
             this.isLoading = false;
             this.unavailableError = new ErrorWrapper(err).toString() || "Error occurred while opening file";
+        });
+
+        this.jsGit.getRepoContents(JSGitService.splitFileKey(this.tabData.id).repoUrl).subscribeTracked(this, () => {
+            this.localRepository.getAppMeta(this.tabData.id, "isDirty").take(1).subscribe((isModified) => {
+                if (isModified) {
+                    console.log("not updating locally modified file "+this.tabData.id);
+                    return;
+                }
+                this.jsGit.getFileContent(this.tabData.id).take(1).subscribe(result => {
+                    console.log("updating remotely modified file "+this.tabData.id);
+                    this.fileContent.setValue(result);
+                    this.setAppDirtyState(false);
+                }, err => {
+                });
+            });
         });
 
         // Set this app's ID to the code content service
