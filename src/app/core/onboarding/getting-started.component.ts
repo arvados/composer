@@ -20,6 +20,22 @@ import {SendFeedbackModalComponent} from "../modals/send-feedback-modal/send-fee
 
                 <p>
                    Choose a git repository on the left or choose "Manage Repositories" in the <i class="fa fa-fw fa-chevron-down"></i> menu to create a new one.
+                   <!--
+                    Learn how to
+                    <a #localWorkspaceLink
+                       href="http://docs.rabix.io/rabix-composer-configuration#add-a-local-workspace"
+                       (click)="system.openLink(localWorkspaceLink.href, $event)"
+                       data-test="local-workspace-link">
+                        add a local workspace
+                    </a>
+                    and
+                    <a #connectingPlatformLink
+                       href="http://docs.rabix.io/rabix-composer-configuration#connect-a-platform-account"
+                       (click)="system.openLink(connectingPlatformLink.href, $event)"
+                       data-test="connecting-platform-link">
+                        connect your Platform account.
+                    </a>
+                   -->
                 </p>
             </div>
 

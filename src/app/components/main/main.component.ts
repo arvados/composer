@@ -11,6 +11,7 @@ import {JavascriptEvalService} from "../../services/javascript-eval/javascript-e
 import {ContextService} from "../../ui/context/context.service";
 import {ModalService} from "../../ui/modal/modal.service";
 import {UrlValidator} from "../../validators/url.validator";
+import {DomEventService} from "../../services/dom/dom-event.service";
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -20,7 +21,7 @@ import {UrlValidator} from "../../validators/url.validator";
         <ct-layout data-test="layout"></ct-layout>
         <div id="runnix" [class.active]="runnix | async"></div>
     `,
-    styleUrls: ["./../../../assets/sass/main.scss", "./main.component.scss"],
+    styleUrls: ["./main.component.scss"],
     providers: [
         UrlValidator,
         ContextService
@@ -31,6 +32,7 @@ export class MainComponent {
     public runnix: Observable<boolean>;
 
     constructor(modal: ModalService,
+                domService: DomEventService,
                 system: SystemService,
                 vcRef: ViewContainerRef,
                 auth: AuthService,
@@ -42,6 +44,9 @@ export class MainComponent {
                 js: JavascriptEvalService) {
 
         system.boot();
+
+        // Prevent dropping files on document to avoid window navigation
+        domService.preventDropEventOnDocument();
 
         openExternalFileService.watchDeepLinks();
 
