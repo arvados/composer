@@ -387,7 +387,8 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
 
                 // add local source so step can be serialized without embedding
                 if (droppedIsLocal) {
-                    const editedAppIsLocal = AppHelper.isLocal(this.data.id);
+                    //const editedAppIsLocal = AppHelper.isLocal(this.data.id);
+                    const editedAppIsLocal = true;
                     let rdfID              = nodeData.name;
 
                     /**
@@ -396,7 +397,8 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
                      */
                     if (editedAppIsLocal) {
 
-                        const {relative, dirname, basename} = window["require"]("path");
+                        //const {relative, dirname, basename} = window["require"]("path");
+                        const {relative, dirname, basename} = require("path");
 
                         const originalDir   = dirname(this.data.id);
                         const addedDir      = dirname(rdfID);

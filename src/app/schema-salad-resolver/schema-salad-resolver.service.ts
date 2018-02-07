@@ -80,7 +80,20 @@ export class SchemaSaladResolver {
                 } else if (isExternalResource) {
                     future.push(new Promise((resolve, reject) => {
 
-                        let externalPath = source.split("/").slice(0, -1).concat(entry).join("/");
+                        let externalPathParts = source.split("/").slice(0, -1);
+                        let entryPathParts = entry.split("/");
+                        while (entryPathParts.length > 0) {
+                            let front = entryPathParts.shift();
+                            if (front == ".") {
+                                continue;
+                            } else if (front == "..") {
+                                externalPathParts.pop();
+                            } else {
+                                externalPathParts.push(front);
+                            }
+                        }
+
+                        let externalPath = externalPathParts.join("/");
 
                         if (SchemaSaladResolver.isUrl(entry) || (!SchemaSaladResolver.isUrl(source) && SchemaSaladResolver.isLocalFile(entry))) {
                             externalPath = entry;
