@@ -87,21 +87,6 @@ export class ArvadosAppsPanelService extends AppsPanelService {
 
                         const repoUrl = item["url"];
                         self._jsgit.getRepoContents(repoUrl).subscribe((dirents) => {
-                            if (dirents instanceof Error) {
-                                self.notificationBar.showNotification("Cannot get repository "+repoUrl+". " + new ErrorWrapper(dirents));
-                                children_sub.next([{
-                                    id: "error",
-                                    data: null,
-                                    type: "loading",
-                                    label: "(error)",
-                                    isExpandable: false,
-                                    isExpanded: Observable.of(false),
-                                    icon: "",
-                                    iconExpanded: "",
-                                    children: Observable.empty()
-                                }]);
-                                return;
-                            }
                             function load_dir(dirname: string): Observable<TreeNode<any>[]> {
                                 const pending = [];
 
@@ -187,6 +172,20 @@ export class ArvadosAppsPanelService extends AppsPanelService {
                                 item["loaded"] = true;
                                 children_sub.next(newchildren);
                             });
+                        }, (err) => {
+                            self.notificationBar.showNotification("Cannot get repository "+repoUrl+". " + new ErrorWrapper(err)
+                                                                  + ".  If this is a newly created repository, please wait a minute and try again.");
+                            children_sub.next([{
+                                id: "error",
+                                data: null,
+                                type: "loading",
+                                label: "(error)",
+                                isExpandable: false,
+                                isExpanded: Observable.of(false),
+                                icon: "",
+                                iconExpanded: "",
+                                children: Observable.empty()
+                            }]);
                         });
                     };
 

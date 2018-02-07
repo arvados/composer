@@ -6,8 +6,8 @@
     .notification {
         display: flex;
         opacity: 1;
-        height: $notification-bar-height;
-        line-height: $notification-bar-height;
+        //height: $notification-bar-height;
+        //line-height: $notification-bar-height;
         transition: opacity .25s, height 0.25s;
         overflow: hidden;
         color: white;
@@ -15,7 +15,8 @@
 
         .error-text {
             flex: 1;
-            @include ellipsis();
+	    margin-top: 4px;
+            //@include ellipsis();
         }
 
         i {
@@ -41,4 +42,3 @@
         background-color: $brand-warning;
     }
 }
-
