@@ -39,13 +39,14 @@
 </div>
 
 <div class="status">
+    <!--
     <div *ngIf="!execution?.stepExecution" #output class="p-1">
         Check here for the progress of your execution.
         Before executing an analysis, make sure that Docker is running and that you have Java Runtime
         Environment version 8+ installed.<br/>
         Check here for the progress of your execution.
     </div>
-
+    -->
 
     <div *ngIf="execution?.error" class="execution-failure">
         Execution failed with exit code {{ execution?.error.code }}

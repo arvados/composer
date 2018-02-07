@@ -1,11 +1,12 @@
 import {Injectable} from "@angular/core";
 import {Observable} from "rxjs/Observable";
 import {ReplaySubject} from "rxjs/ReplaySubject";
-import {AppExecutionContext, ExecutorConfig} from "../../../electron/src/storage/types/executor-config";
+import {AppExecutionContext, ExecutorParamsConfig, ExecutorConfig} from "../../../electron/src/storage/types/executor-config";
 import {AppHelper} from "../core/helpers/AppHelper";
 import {LocalRepositoryService} from "../repository/local-repository.service";
 import {PlatformRepositoryService} from "../repository/platform-repository.service";
 import {ArvadosRepositoryService} from "../repository/arvados-repository.service";
+import {WorkflowModel, CommandLineToolModel} from "cwlts/models";
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
 import { AuthService } from "../auth/auth.service";
 import { JSGitService } from "../services/js-git/js-git.service";
@@ -14,7 +15,6 @@ import { ConfigurationService } from "../app.config";
 @Injectable()
 export class ArvExecutorService {
 
-    private config        = new ReplaySubject<ExecutorConfig>(1);
     private executorState = new ReplaySubject<"VALID" | "INVALID" | "UNSET">(1);
     private jsgit;
 
@@ -25,10 +25,6 @@ export class ArvExecutorService {
                 private _arvRepo: ArvadosRepositoryService)
     {
         this.jsgit = _jsgit;
-    }
-
-    getConfig<T extends keyof ExecutorConfig>(key: T): Observable<ExecutorConfig[T]> {
-         return this.config.map(c => c[key]);
     }
 
     /**
@@ -43,7 +39,32 @@ export class ArvExecutorService {
         return Observable.of("VALID");
     }
 
-    run(appID: string, content: string, model: Object, options = {}): Observable<string> {
+
+    makeOutputDirectoryName(rootDir, appID, user = "local", time = new Date()) {
+        return "";
+    }
+
+    private serialize(model: WorkflowModel | CommandLineToolModel): string {
+        let serialized;
+
+        if (model instanceof WorkflowModel) {
+            serialized = model.serializeEmbedded();
+        } else {
+            serialized = model.serialize();
+        }
+
+        // Bunny traverses mistakenly into this to look for actual inputs, it might have been resolved by now
+        delete serialized["sbg:job"];
+
+        return serialized;
+    }
+
+    execute(appID: string,
+            model: WorkflowModel | CommandLineToolModel,
+            jobValue: Object = {},
+            executorPath?: string,
+            executionParams: Partial<ExecutorParamsConfig> = {}): Observable<any> {
+
         const sp = JSGitService.splitFileKey(appID);
         const self = this;
 
@@ -79,7 +100,7 @@ export class ArvExecutorService {
                         },
                         "/var/lib/cwl/workflow.json": {
                             "kind": "json",
-                            "content": model
+                            "content": this.serialize(model)
                         },
                         "stdout": {
                             "kind": "file",
@@ -121,10 +142,6 @@ export class ArvExecutorService {
                 return url;
             });
         });
-    }
-
-    getEnvironment(appID: string): Observable<ExecutorConfig> {
-        return null;
     }
 
     /**
