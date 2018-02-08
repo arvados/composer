@@ -127,6 +127,7 @@ import {Component, Input} from "@angular/core";
                 <ul class="list-unstyled dropdown-list">
 
                     <ng-container *ngIf="host.viewMode !== 'test'; else testItems">
+                        <!--
                         <li class="list-item" (click)="host.exportAppInFormat('json');moreActionsDropdown.hide();">
                             Export (JSON format)
                         </li>
@@ -134,6 +135,7 @@ import {Component, Input} from "@angular/core";
                         <li class="list-item" (click)="host.exportAppInFormat('yaml');moreActionsDropdown.hide();">
                             Export (YAML format)
                         </li>
+                        -->
 
                         <li *ngIf="host.isWorkflowModel()" class="list-item"
                             (click)="host.setHints(); moreActionsDropdown.hide();">

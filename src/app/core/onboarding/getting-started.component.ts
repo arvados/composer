@@ -19,7 +19,7 @@ import {SendFeedbackModalComponent} from "../modals/send-feedback-modal/send-fee
                 <p class="subtitle">Before you start building</p>
 
                 <p>
-                   Choose a git repository on the left or choose "Manage Repositories" in the <i class="fa fa-fw fa-chevron-down"></i> menu to create a new one.
+                   Choose a git repository on the left or choose <i class="fa fa-fw fa-gear"></i> Manage Repositories to create a new one.
                    <!--
                     Learn how to
                     <a #localWorkspaceLink

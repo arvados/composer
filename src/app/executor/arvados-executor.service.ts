@@ -11,6 +11,20 @@ import { Http, Headers, Response, RequestOptions } from '@angular/http';
 import { AuthService } from "../auth/auth.service";
 import { JSGitService } from "../services/js-git/js-git.service";
 import { ConfigurationService } from "../app.config";
+import {Store} from "@ngrx/store";
+import {
+    ExecutorOutputAction,
+    ExecutionCompletedAction,
+    ExecutionErrorAction,
+    ExecutionStoppedAction,
+    ExecutionRequirementErrorAction,
+    ExecutionPreparedAction,
+    ExecutionStartedAction,
+    EXECUTION_STOP,
+    ExecutionStopAction,
+} from "../execution/actions/execution.actions";
+import {Actions} from "@ngrx/effects";
+import {AppType} from "../execution/types";
 
 @Injectable()
 export class ArvExecutorService {
@@ -22,7 +36,9 @@ export class ArvExecutorService {
                 private _authService: AuthService,
                 private _jsgit: JSGitService,
                 private _config: ConfigurationService,
-                private _arvRepo: ArvadosRepositoryService)
+                private _arvRepo: ArvadosRepositoryService,
+                private store: Store<any>,
+                private actions: Actions)
     {
         this.jsgit = _jsgit;
     }
@@ -137,8 +153,15 @@ export class ArvExecutorService {
         }).flatMap(response => {
             return self._config.discoveryDoc.take(1).map((conf) => {
                 var url = conf["workbenchUrl"] + "/container_requests/" + response.json().uuid;
-                console.log("opening tab "+url);
                 window.open(url, "_blank");
+
+                self.store.dispatch(new ExecutionPreparedAction(
+                    appID,
+                    model.class as AppType,
+                    [],
+                    url
+                ));
+
                 return url;
             });
         });

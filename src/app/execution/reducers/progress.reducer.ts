@@ -46,6 +46,8 @@ export function reducer<T extends { type: string | any }>(state: ProgressState =
 
             const {steps, appID, outDirPath, appType} = action as Partial<ExecutionPreparedAction>;
 
+            console.log("prepared! "+outDirPath);
+
             const stepExecution = steps.map(step => new StepExecution(step.id, step.label));
             const app           = new AppExecution(appType, outDirPath, stepExecution);
 

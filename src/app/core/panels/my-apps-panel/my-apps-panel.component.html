@@ -12,24 +12,14 @@
     -->
 
   <span class="pull-right">
-        <ct-generic-dropdown-menu [ct-menu]="fileActionsMenu" menuAlign="left"
-                                  #fileActionsDropDown>
 
-            <button type="button"
-                    class="btn btn-unstyled"
-                    data-test="fileActions-menu-button"
-                    (click)="fileActionsDropDown.toggleMenu()">
-              <i class="fa fa-fw fa-chevron-down"></i>
-            </button>
-
-        </ct-generic-dropdown-menu>
-
-        <ng-template #fileActionsMenu class="mr-1">
-          <ul class="list-unstyled" (click)="fileActionsDropDown.hide()">
-            <li data-test="fileActions-button"><a href="{{workbenchUrl}}/repositories" target="_blank">Manage Repositories</a></li>
-            </ul>
-        </ng-template>
-        </span>
+    <a class="btn btn-link sync-btn"
+       href="{{workbenchUrl}}/repositories"
+       target="_blank"
+       ct-tooltip="Manage Repositories"
+       tooltipPlacement="bottom">
+      <i class="fa fa-gear"></i>
+    </a>
 
     <button class="btn btn-link sync-btn"
             data-test="sync-button"
@@ -38,7 +28,7 @@
             (click)="syncFileTree()">
         <i class="fa fa-refresh"></i>
     </button>
-
+  </span>
 </div>
 
 <div class="scroll-container">
