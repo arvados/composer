@@ -54,7 +54,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
     @ViewChildren(NavSearchResultComponent, {read: ElementRef})
     private searchResultComponents: QueryList<ElementRef>;
 
-    private workbenchUrl: string;
+    public workbenchUrl: string;
 
     constructor(private cdr: ChangeDetectorRef,
                 private workbox: WorkboxService,
