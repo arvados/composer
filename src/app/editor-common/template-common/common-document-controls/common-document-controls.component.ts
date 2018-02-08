@@ -37,7 +37,7 @@ import {Component, Input} from "@angular/core";
                         type="button"
                         [disabled]="host.dataModel === undefined"
                         *ngIf="host.tabData.dataSource !== 'local'"
-                        ct-tooltip="Open on Platform"
+                        ct-tooltip="Open on the Platform"
                         tooltipPlacement="bottom"
                         (click)="host.openOnPlatform(host.dataModel.sbgId)">
                     <i class="fa fa-fw fa-external-link"></i>
@@ -115,8 +115,9 @@ import {Component, Input} from "@angular/core";
             <ct-generic-dropdown-menu [ct-menu]="moreActionsMenu" menuAlign="left" #moreActionsDropdown>
                 <button class="btn control-button"
                         *ngIf="host.appIsRunnable()"
-                        ct-tooltip="See More Actions"
+                        ct-tooltip="See more Actions"
                         tooltipPlacement="bottom"
+                        data-test="more-actions-button"
                         (click)="moreActionsDropdown.show()">
                     <i class="fa fa-fw fa-ellipsis-h"></i>
                 </button>
@@ -126,13 +127,15 @@ import {Component, Input} from "@angular/core";
                 <ul class="list-unstyled dropdown-list">
 
                     <ng-container *ngIf="host.viewMode !== 'test'; else testItems">
+                        <!--
                         <li class="list-item" (click)="host.exportAppInFormat('json');moreActionsDropdown.hide();">
-                            Export into JSON format
+                            Export (JSON format)
                         </li>
 
                         <li class="list-item" (click)="host.exportAppInFormat('yaml');moreActionsDropdown.hide();">
-                            Export into YAML format
+                            Export (YAML format)
                         </li>
+                        -->
 
                         <li *ngIf="host.isWorkflowModel()" class="list-item"
                             (click)="host.setHints(); moreActionsDropdown.hide();">

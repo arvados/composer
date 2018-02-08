@@ -13,6 +13,7 @@ import {RecentAppTab} from "../../../electron/src/storage/types/recent-app-tab";
 import {TabData} from "../../../electron/src/storage/types/tab-data-interface";
 import {IpcService} from "../services/ipc.service";
 import {AuthCredentials} from "../auth/model/auth-credentials";
+import {ExecutorConfig} from "../../../electron/src/storage/types/executor-config";
 import {CookieService} from 'ngx-cookie';
 import { Http, Headers, Response, BrowserXhr, RequestOptions, BaseRequestOptions, ResponseOptions, BaseResponseOptions, ConnectionBackend, XHRBackend, XSRFStrategy, CookieXSRFStrategy } from '@angular/http';
 import { ConfigurationService } from '../app.config'
@@ -428,5 +429,11 @@ export class ArvadosRepositoryService {
 
     setPublicAppsGrouping(publicAppsGrouping: "toolkit" | "category" | "none"): Promise<any> {
         return this.patch({publicAppsGrouping}).toPromise();
+    }
+
+    getExecutorConfig(): Observable<ExecutorConfig> {
+        return Observable.of({path: "",
+                             choice: "",
+                             outDir: ""});
     }
 }

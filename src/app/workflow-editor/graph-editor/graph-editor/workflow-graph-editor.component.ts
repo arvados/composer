@@ -63,8 +63,7 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
 
     @Input() model: WorkflowModel;
 
-    @Input()
-    host: WorkflowEditorComponent;
+    @Input() host: WorkflowEditorComponent;
 
     @Input() data: AppTabData;
 
@@ -91,7 +90,6 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
 
     @ViewChild("inspector", {read: TemplateRef})
     private inspectorTemplate: TemplateRef<any>;
-
 
     private historyHandler: (ev: KeyboardEvent) => void;
 
@@ -331,13 +329,13 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
     /**
      * Triggers when app is dropped on canvas
      */
-    onDrop(ev: MouseEvent, nodeData: {name: string, type: "cwl" | "directory" | "file"}) {
+    onDrop(ev: MouseEvent, nodeData: { name: string, type: "cwl" | "directory" | "file" }) {
         if (this.readonly || nodeData.type !== "cwl") {
             return;
         }
 
-        //const isLocal = AppHelper.isLocal(nodeData.name);
-        const isLocal = true;
+        //const droppedIsLocal = AppHelper.isLocal(nodeData.name);
+        const droppedIsLocal = true;
 
         let fetch: Promise<string>;
         if (nodeData.name.substr(0, nodeData.name.indexOf("#")) != this.data.id.substr(0, this.data.id.indexOf("#"))) {
@@ -347,7 +345,7 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
             this.notificationBar.showNotification(`Cannot add a workflow to itself.`);
             return;
         } else {
-            fetch = isLocal
+                fetch = droppedIsLocal
                 ? this.fileRepository.fetchFile(nodeData.name)
                 : this.platformRepository.getApp(nodeData.name).then(app => JSON.stringify(app));
         }
@@ -369,8 +367,9 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
                     });
             })
             .then((resolved: Process) => {
+
                 // if the app is local, give it an id that's the same as its filename (if doesn't exist)
-                if (isLocal) {
+                if (droppedIsLocal) {
                     resolved.id = resolved.id || AppHelper.getBasename(nodeData.name, true);
                 }
 
@@ -387,9 +386,32 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
                 const step = this.model.addStepFromProcess(patched);
 
                 // add local source so step can be serialized without embedding
-                if (isLocal) {
+                if (droppedIsLocal) {
+                    //const editedAppIsLocal = AppHelper.isLocal(this.data.id);
+                    const editedAppIsLocal = true;
+                    let rdfID              = nodeData.name;
+
+                    /**
+                     * If we are dropping a local app onto another local app, it should be referenced by a relative path
+                     * FIXME: Do not require path here, have it as an optional dependency
+                     */
+                    if (editedAppIsLocal) {
+
+                        //const {relative, dirname, basename} = window["require"]("path");
+                        const {relative, dirname, basename} = require("path");
+
+                        const originalDir   = dirname(this.data.id);
+                        const addedDir      = dirname(rdfID);
+                        const addedBasename = basename(rdfID);
+                        // If files are in the same directory, relative path will be an empty string,
+                        // so we need to avoid having “/{basename}”, and make it be “./{basename}”
+                        const relativePath = relative(originalDir, addedDir) || ".";
+
+                        rdfID = relativePath + "/" + addedBasename;
+                    }
+
+                    step.customProps["sbg:rdfId"]     = rdfID;
                     step.customProps["sbg:rdfSource"] = nodeData.name;
-                    step.customProps["sbg:rdfId"]     = nodeData.name;
                 }
 
                 this.change.emit();
@@ -542,7 +564,8 @@ export class WorkflowGraphEditorComponent extends DirectiveBase implements OnCha
             }, err => {
                 this.notificationBar.showNotification("Could not save SVG: " + err, {timeout: 50000});
             });
-        }, () => {});
+        }, () => {
+        });
 
     }
 

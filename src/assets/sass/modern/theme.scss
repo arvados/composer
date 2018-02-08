@@ -23,7 +23,7 @@
         padding: .55rem 1rem;
         cursor: pointer;
         min-width: 150px;
-        color: $smoke;
+        color: $black;
         white-space: nowrap;
 
         .text-muted {
@@ -31,7 +31,7 @@
         }
 
         &:hover {
-            background: $gray;
+            background: #ccc;
         }
     }
 }

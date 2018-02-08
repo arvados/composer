@@ -39,6 +39,14 @@ import {CookieModule} from 'ngx-cookie';
 import {JSGitService} from "./services/js-git/js-git.service";
 import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver.service"
 
+import {StoreModule} from "@ngrx/store";
+import {EffectsModule} from "@ngrx/effects";
+import {FileOpenerToken, DirectoryExplorerToken} from "./execution/interfaces";
+import {NativeSystemService} from "./native/system/native-system.service";
+import {WorkboxService} from "./core/workbox/workbox.service";
+import {directoryExplorerFactory, fileOpenerFactory} from "./factories/execution";
+import {credentialsRegistryFactory} from "./factories/auth";
+
 @NgModule({
     providers: [
         ConfigurationService,
@@ -74,14 +82,15 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
             useClass: ArvadosGlobalService
         },
 
-        //LocalRepositoryService,
-        //PlatformRepositoryService,
         OpenExternalFileService,
         ModalService,
+        OpenExternalFileService,
         PlatformConnectionService,
         SettingsService,
         StatusBarService,
-        JSGitService
+        JSGitService,
+        {provide: DirectoryExplorerToken, useFactory: directoryExplorerFactory, deps: [NativeSystemService]},
+        {provide: FileOpenerToken, useFactory: fileOpenerFactory, deps: [WorkboxService]}
     ],
     declarations: [
         MainComponent,
@@ -103,8 +112,10 @@ import {SchemaSaladResolver} from "./schema-salad-resolver/schema-salad-resolver
         ToolEditorModule,
         WorkflowEditorModule,
         WebstubModule,
-        //NativeModule,
         CookieModule.forRoot(),
+        NativeModule,
+        StoreModule.forRoot({}),
+        EffectsModule.forRoot([])
     ],
 })
 export class AppModule {

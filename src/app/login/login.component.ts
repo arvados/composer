@@ -16,7 +16,6 @@ import {environment} from './../../environments/environment';
         </div>
     `,
     styleUrls: [
-        "./../../assets/sass/main.scss",
         "./login.component.scss"
     ]
 })
