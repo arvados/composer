@@ -76,15 +76,19 @@ export class ArvadosRepositoryService {
                 const apiEndPoint = conf['apiEndPoint'];
                 const headers = new Headers({ "Authorization": "OAuth2 " + token });
                 const httpOptions = new RequestOptions({ "headers": headers });
-                this._http.get(apiEndPoint+"/arvados/v1/users/current", httpOptions).subscribe(response => {
-                    const u = response.json();
-                    this.setActiveCredentials(new AuthCredentials(apiEndPoint+"/0123456789abcd", token, {
-                        username: u["username"],
-                        first_name: u["first_name"],
-                        last_name: u["last_name"],
-                        email: u["email"]
-                    }));
-                });
+                this._http.get(apiEndPoint+"/arvados/v1/users/current", httpOptions).subscribe(
+                    response => {
+                        const u = response.json();
+                        this.setActiveCredentials(new AuthCredentials(apiEndPoint+"/0123456789abcd", token, {
+                            username: u["username"],
+                            first_name: u["first_name"],
+                            last_name: u["last_name"],
+                            email: u["email"]
+                        }));
+                    },
+                    error => {
+                        this.setActiveCredentials(null);
+                    });
             });
         } else {
             this.setActiveCredentials(null);

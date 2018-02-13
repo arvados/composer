@@ -62,7 +62,10 @@
         <i class="icon fa-4x fa fa-search"></i>
     </div>
 
+    <!-- height: 1px is a Firefox workaround to ensure that scroll
+    bars show up if the panel is taller than the window. -->
     <ct-tree-view #tree
+		  style="height: 1px"
                   [class.hidden]="searchContent?.value"
                   [nodes]="rootFolders"
                   [level]="1"></ct-tree-view>
