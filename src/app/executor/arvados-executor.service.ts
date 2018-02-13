@@ -85,22 +85,33 @@ export class ArvExecutorService {
         const self = this;
 
         return self.jsgit.getRepoHead(sp.repoUrl, 'master').flatMap((commithash) => {
-            const input_defaults = {};
+            let state = "Committed";
             for (var i in model["inputs"]) {
                 var input = model["inputs"][i];
+                var shortid;
+                if (input["id"][0] == "#") {
+                    shortid = input["id"].substr(1);
+                } else {
+                    const shortsplit = input["id"].split("/");
+                    shortid = shortsplit[shortsplit.length-1];
+                }
                 if (input["default"] !== undefined) {
-                    let shortid;
-                    if (input["id"][0] == "#") {
-                        shortid = input["id"].substr(1);
-                    } else {
-                        let shortsplit = input["id"].split("/");
-                        shortid = shortsplit[shortsplit.length-1];
+                    if (jobValue[shortid] === undefined) {
+                        jobValue[shortid] = input["default"];
                     }
-                    input_defaults[shortid] = input["default"]
+                }
+                if (input["type"].serialize().indexOf("null") == -1 &&
+                    (jobValue[shortid] === undefined || jobValue[shortid] === null))
+                {
+                    console.log("Unset parameter");
+                    state = "Uncommitted";
                 }
             }
+            console.log("state is "+state);
+            console.log(jobValue);
             var body = {
                 container_request: {
+                    state: state,
                     name: sp.path,
                     command: ["arvados-cwl-runner", "--local", "--api=containers",
                               "/var/lib/cwl/run"+sp.path,
@@ -112,7 +123,7 @@ export class ArvExecutorService {
                     mounts: {
                         "/var/lib/cwl/cwl.input.json": {
                             "kind": "json",
-                            "content": input_defaults
+                            "content": jobValue
                         },
                         "/var/lib/cwl/workflow.json": {
                             "kind": "json",
