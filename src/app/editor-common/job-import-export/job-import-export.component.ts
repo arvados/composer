@@ -25,7 +25,7 @@ export class JobImportExportComponent implements OnInit, OnChanges {
 
 
     @Input()
-    activeTab: "file" | "code" = "file";
+    activeTab: "file" | "code" = "code";
 
     @Input()
     action: "import" | "export";

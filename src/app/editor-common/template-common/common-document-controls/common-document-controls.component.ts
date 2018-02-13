@@ -44,16 +44,6 @@ import {Component, Input} from "@angular/core";
                 </button>
                 -->
 
-                <!--Run-->
-                <button type="button" class="btn control-button"
-                        *ngIf="!host.isExecuting"
-                        [disabled]="!host.appIsRunnable()"
-                        ct-tooltip="Run in Arvados"
-                        tooltipPlacement="bottom"
-                        (click)="host.scheduleExecution()">
-                    <i class="fa fa-fw fa-play"></i>
-                </button>
-
                 <!--Push to Platform-->
                 <!--
                 <button class="btn control-button" data-test="publish-button"

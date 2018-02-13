@@ -1,9 +1,11 @@
 <div class="header">
     <ct-tab-selector class="pull-left" distribute="auto" [(active)]="activeTab">
 
+        <!--
         <ct-tab-selector-entry tabName="file" data-test="import-export-file">
             {{ action === "import" ? "Import" : "Export" }} File
         </ct-tab-selector-entry>
+	-->
 
         <ct-tab-selector-entry tabName="code" data-test="import-export-code">
             {{ action === "import" ? "Import" : "Export" }} Code
@@ -75,4 +77,3 @@
         </button>
     </div>
 </div>
-
