@@ -26,8 +26,9 @@ version_from_git() {
     fi
 
     declare $(format_last_commit_here "git_ts=%ct git_hash=%h")
-    echo "${prefix}.$(date -ud "@$git_ts" +%Y%m%d%H%M%S).$git_hash"
-}
+    ARVADOS_BUILDING_VERSION="$(git describe --abbrev=0).$(date -ud "@$git_ts" +%Y%m%d%H%M%S)"
+    echo "$ARVADOS_BUILDING_VERSION"
+} 
 
 nohash_version_from_git() {
     version_from_git $1 | cut -d. -f1-3
@@ -42,13 +43,12 @@ cd $WORKDIR
 if [[ -n "$2" ]]; then
     build_version="$2"
 else
-    build_version="$(nohash_version_from_git)"
+    build_version="$(version_from_git)"
 fi
 rm -Rf $WORKDIR/node_modules
 rm -f $WORKDIR/*.deb; rm -f $WORKDIR/*.rpm
 npm install
 yarn install
-
 #
 # Workaround, make dev build (no -prod) until we figure out why prod build
 # fails to load.
