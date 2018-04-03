@@ -49,7 +49,6 @@ rm -Rf $WORKDIR/node_modules
 rm -f $WORKDIR/*.deb; rm -f $WORKDIR/*.rpm
 npm install
 yarn install
-
 #
 # Workaround, make dev build (no -prod) until we figure out why prod build
 # fails to load.
