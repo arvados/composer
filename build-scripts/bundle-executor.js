@@ -1,3 +1,7 @@
+// Copyright (C) The Rabix Authors. All rights reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 const fs = require("fs-extra");
 const path = require("path");
 const tar = require("tar");
@@ -30,25 +34,19 @@ fs.ensureDirSync(targetDir);
 const tmpDir = targetDir + "/tmp";
 fs.ensureDir(tmpDir);
 
-console.log("Downloading", executorDownloadURL);
+// console.log("Downloading", executorDownloadURL);
 
-const write = request.get({
-    uri: executorDownloadURL,
-    gzip: true,
-    encoding: null,
-}).pipe(tar.x({
-    C: tmpDir
-}));
+// const write = request.get({
+//     uri: executorDownloadURL,
+//     gzip: true,
+//     encoding: null,
+// }).pipe(tar.x({
+//     C: tmpDir
+// }));
 
-write.on("close", () => {
-    console.log("Copying ...");
-    const versionedDir = glob.sync(`${tmpDir}/*`)[0];
-    fs.copySync(versionedDir + "/", targetDir);
-    rimraf.sync(tmpDir);
-});
-
-
-
-
-
-
+// write.on("close", () => {
+//     console.log("Copying ...");
+//     const versionedDir = glob.sync(`${tmpDir}/*`)[0];
+//     fs.copySync(versionedDir + "/", targetDir);
+//     rimraf.sync(tmpDir);
+// });
