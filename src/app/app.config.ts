@@ -1,15 +1,15 @@
-import {Injectable} from '@angular/core';
-import {Http} from '@angular/http';
-import {Observable} from "rxjs/Observable";
-import {ReplaySubject} from "rxjs/ReplaySubject";
-import {environment} from '../environments/environment';
+import { Injectable } from '@angular/core';
+import { Http } from '@angular/http';
+import { Observable } from "rxjs/Observable";
+import { ReplaySubject } from "rxjs/ReplaySubject";
+import { environment } from '../environments/environment';
 import * as yaml from 'js-yaml';
 
 @Injectable()
 export class ConfigurationService {
 
-    public configuration : ReplaySubject<Object> = new ReplaySubject(1);
-    public discoveryDoc: ReplaySubject<Object> = new ReplaySubject(1);
+    public configuration: ReplaySubject<Object> = new ReplaySubject(1);
+    public configDoc: ReplaySubject<Object> = new ReplaySubject(1);
 
     constructor(private http: Http) {
         if (!environment.browser || !environment.configPath) { return; }
@@ -27,9 +27,15 @@ export class ConfigurationService {
 
         obs.flatMap(configuration => {
             this.configuration.next(configuration);
-            return http.get(configuration['apiEndPoint']+"/discovery/v1/apis/arvados/v1/rest");
+            var apiHost;
+            if (configuration['API_HOST']) {
+                apiHost = "https://" + configuration['API_HOST'];
+            } else if (configuration['apiEndPoint']) {
+                apiHost = configuration['apiEndPoint'];
+            }
+            return http.get(apiHost + "/arvados/v1/config");
         }).subscribe(res => {
-            this.discoveryDoc.next(res.json());
+            this.configDoc.next(res.json());
         });
     }
 }
