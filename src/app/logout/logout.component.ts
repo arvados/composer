@@ -1,6 +1,6 @@
-import {Component, Input, OnInit, ViewContainerRef, ViewEncapsulation} from "@angular/core";
-import {AbstractControl, FormControl, FormGroup, Validators} from "@angular/forms";
-import {AuthService} from "../auth/auth.service";
+import { Component, Input, OnInit, ViewContainerRef, ViewEncapsulation } from "@angular/core";
+import { AbstractControl, FormControl, FormGroup, Validators } from "@angular/forms";
+import { AuthService } from "../auth/auth.service";
 import { ConfigurationService } from "../app.config";
 
 @Component({
@@ -17,13 +17,13 @@ export class LogoutComponent {
     private workbenchUrl: string;
 
     constructor(private _authService: AuthService,
-                private _config: ConfigurationService) {
+        private _config: ConfigurationService) {
     }
 
     logout(): void {
-        this._config.discoveryDoc.take(1).subscribe((conf) => {
+        this._config.configDoc.take(1).subscribe((conf) => {
             this._authService.setActiveCredentials(null);
-            window.location.href = conf["workbenchUrl"] + "/logout";
+            window.location.href = conf["Services"]["Workbench1"]["ExternalURL"] + "/logout";
         });
     }
 

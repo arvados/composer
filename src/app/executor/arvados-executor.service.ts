@@ -1,17 +1,17 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs/Observable";
-import {ReplaySubject} from "rxjs/ReplaySubject";
-import {AppExecutionContext, ExecutorParamsConfig, ExecutorConfig} from "../../../electron/src/storage/types/executor-config";
-import {AppHelper} from "../core/helpers/AppHelper";
-import {LocalRepositoryService} from "../repository/local-repository.service";
-import {PlatformRepositoryService} from "../repository/platform-repository.service";
-import {ArvadosRepositoryService} from "../repository/arvados-repository.service";
-import {WorkflowModel, CommandLineToolModel} from "cwlts/models";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs/Observable";
+import { ReplaySubject } from "rxjs/ReplaySubject";
+import { AppExecutionContext, ExecutorParamsConfig, ExecutorConfig } from "../../../electron/src/storage/types/executor-config";
+import { AppHelper } from "../core/helpers/AppHelper";
+import { LocalRepositoryService } from "../repository/local-repository.service";
+import { PlatformRepositoryService } from "../repository/platform-repository.service";
+import { ArvadosRepositoryService } from "../repository/arvados-repository.service";
+import { WorkflowModel, CommandLineToolModel } from "cwlts/models";
 import { Http, Headers, Response, RequestOptions } from '@angular/http';
 import { AuthService } from "../auth/auth.service";
 import { JSGitService } from "../services/js-git/js-git.service";
 import { ConfigurationService } from "../app.config";
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 import {
     ExecutorOutputAction,
     ExecutionCompletedAction,
@@ -23,8 +23,8 @@ import {
     EXECUTION_STOP,
     ExecutionStopAction,
 } from "../execution/actions/execution.actions";
-import {Actions} from "@ngrx/effects";
-import {AppType} from "../execution/types";
+import { Actions } from "@ngrx/effects";
+import { AppType } from "../execution/types";
 
 @Injectable()
 export class ArvExecutorService {
@@ -33,13 +33,12 @@ export class ArvExecutorService {
     private jsgit;
 
     constructor(private _http: Http,
-                private _authService: AuthService,
-                private _jsgit: JSGitService,
-                private _config: ConfigurationService,
-                private _arvRepo: ArvadosRepositoryService,
-                private store: Store<any>,
-                private actions: Actions)
-    {
+        private _authService: AuthService,
+        private _jsgit: JSGitService,
+        private _config: ConfigurationService,
+        private _arvRepo: ArvadosRepositoryService,
+        private store: Store<any>,
+        private actions: Actions) {
         this.jsgit = _jsgit;
     }
 
@@ -76,10 +75,10 @@ export class ArvExecutorService {
     }
 
     execute(appID: string,
-            model: WorkflowModel | CommandLineToolModel,
-            jobValue: Object = {},
-            executorPath?: string,
-            executionParams: Partial<ExecutorParamsConfig> = {}): Observable<any> {
+        model: WorkflowModel | CommandLineToolModel,
+        jobValue: Object = {},
+        executorPath?: string,
+        executionParams: Partial<ExecutorParamsConfig> = {}): Observable<any> {
 
         const sp = JSGitService.splitFileKey(appID);
         const self = this;
@@ -93,7 +92,7 @@ export class ArvExecutorService {
                     shortid = input["id"].substr(1);
                 } else {
                     const shortsplit = input["id"].split("/");
-                    shortid = shortsplit[shortsplit.length-1];
+                    shortid = shortsplit[shortsplit.length - 1];
                 }
                 if (input["default"] !== undefined) {
                     if (jobValue[shortid] === undefined) {
@@ -101,21 +100,20 @@ export class ArvExecutorService {
                     }
                 }
                 if (input["type"].serialize().indexOf("null") == -1 &&
-                    (jobValue[shortid] === undefined || jobValue[shortid] === null))
-                {
+                    (jobValue[shortid] === undefined || jobValue[shortid] === null)) {
                     console.log("Unset parameter");
                     state = "Uncommitted";
                 }
             }
-            console.log("state is "+state);
+            console.log("state is " + state);
             console.log(jobValue);
             var body = {
                 container_request: {
                     state: state,
                     name: sp.path,
                     command: ["arvados-cwl-runner", "--local", "--api=containers",
-                              "/var/lib/cwl/run"+sp.path,
-                              "/var/lib/cwl/cwl.input.json"],
+                        "/var/lib/cwl/run" + sp.path,
+                        "/var/lib/cwl/cwl.input.json"],
                     container_image: "arvados/jobs",
                     cwd: "/var/spool/cwl",
                     output_path: "/var/spool/cwl",
@@ -157,13 +155,13 @@ export class ArvExecutorService {
                 });
                 return self._config.configuration.take(1).flatMap((conf) => {
                     const apiEndPoint = conf['apiEndPoint'];
-                    return self._http.post(apiEndPoint+'/arvados/v1/container_requests',
-                                           body, new RequestOptions({ headers }));
+                    return self._http.post(apiEndPoint + '/arvados/v1/container_requests',
+                        body, new RequestOptions({ headers }));
                 });
             });
         }).flatMap(response => {
-            return self._config.discoveryDoc.take(1).map((conf) => {
-                var url = conf["workbenchUrl"] + "/container_requests/" + response.json().uuid;
+            return self._config.configDoc.take(1).map((conf) => {
+                var url = conf["Services"]["Workbench1"]["ExternalURL"] + "/container_requests/" + response.json().uuid;
                 window.open(url, "_blank");
 
                 self.store.dispatch(new ExecutionPreparedAction(
@@ -188,16 +186,18 @@ export class ArvExecutorService {
 
         // any is a hack-cast, but “executionConfig” key is actually of type AppExecutionContext
         //return (metaFetch as any).map(meta => meta || {});
-        return Observable.of({ jobPath: "n/a",
-                                                    executionParams: {
-                                                        baseDir: "",
-                                                        configurationDir: "",
-                                                        cacheDir: "",
-                                                        noContainer: false,
-                                                        outDir: "",
-                                                        quiet: false,
-                                                        verbose: false
-                                                    }});
+        return Observable.of({
+            jobPath: "n/a",
+            executionParams: {
+                baseDir: "",
+                configurationDir: "",
+                cacheDir: "",
+                noContainer: false,
+                outDir: "",
+                quiet: false,
+                verbose: false
+            }
+        });
     }
 
     setAppConfig(appID: string, data: AppExecutionContext) {

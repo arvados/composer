@@ -1,38 +1,38 @@
-import {AfterContentInit, AfterViewInit, ChangeDetectorRef, Component, ElementRef, QueryList, ViewChild, ViewChildren} from "@angular/core";
-import {FormControl} from "@angular/forms";
-import {Observable} from "rxjs/Observable";
-import {TabData} from "../../../../../electron/src/storage/types/tab-data-interface";
-import {NativeSystemService} from "../../../native/system/native-system.service";
-import {PlatformRepositoryService} from "../../../repository/platform-repository.service";
-import {ContextService} from "../../../ui/context/context.service";
-import {MenuItem} from "../../../ui/menu/menu-item";
-import {ModalService} from "../../../ui/modal/modal.service";
-import {TreeNode} from "../../../ui/tree-view/tree-node";
-import {getDragImageClass, getDragTransferDataType} from "../../../ui/tree-view/tree-view-utils";
-import {TreeViewComponent} from "../../../ui/tree-view/tree-view.component";
-import {TreeViewService} from "../../../ui/tree-view/tree-view.service";
-import {DirectiveBase} from "../../../util/directive-base/directive-base";
-import {DataGatewayService} from "../../data-gateway/data-gateway.service";
-import {AppHelper} from "../../helpers/AppHelper";
-import {AddSourceModalComponent} from "../../modals/add-source-modal/add-source-modal.component";
-import {CreateAppModalComponent} from "../../modals/create-app-modal/create-app-modal.component";
-import {CreateLocalFolderModalComponent} from "../../modals/create-local-folder-modal/create-local-folder-modal.component";
-import {WorkboxService} from "../../workbox/workbox.service";
-import {NavSearchResultComponent} from "../nav-search-result/nav-search-result.component";
-import {MyAppsPanelService} from "./my-apps-panel.service";
-import {ArvadosAppsPanelService} from "./arvados-apps-panel.service";
-import {LocalRepositoryService} from "../../../repository/local-repository.service";
+import { AfterContentInit, AfterViewInit, ChangeDetectorRef, Component, ElementRef, QueryList, ViewChild, ViewChildren } from "@angular/core";
+import { FormControl } from "@angular/forms";
+import { Observable } from "rxjs/Observable";
+import { TabData } from "../../../../../electron/src/storage/types/tab-data-interface";
+import { NativeSystemService } from "../../../native/system/native-system.service";
+import { PlatformRepositoryService } from "../../../repository/platform-repository.service";
+import { ContextService } from "../../../ui/context/context.service";
+import { MenuItem } from "../../../ui/menu/menu-item";
+import { ModalService } from "../../../ui/modal/modal.service";
+import { TreeNode } from "../../../ui/tree-view/tree-node";
+import { getDragImageClass, getDragTransferDataType } from "../../../ui/tree-view/tree-view-utils";
+import { TreeViewComponent } from "../../../ui/tree-view/tree-view.component";
+import { TreeViewService } from "../../../ui/tree-view/tree-view.service";
+import { DirectiveBase } from "../../../util/directive-base/directive-base";
+import { DataGatewayService } from "../../data-gateway/data-gateway.service";
+import { AppHelper } from "../../helpers/AppHelper";
+import { AddSourceModalComponent } from "../../modals/add-source-modal/add-source-modal.component";
+import { CreateAppModalComponent } from "../../modals/create-app-modal/create-app-modal.component";
+import { CreateLocalFolderModalComponent } from "../../modals/create-local-folder-modal/create-local-folder-modal.component";
+import { WorkboxService } from "../../workbox/workbox.service";
+import { NavSearchResultComponent } from "../nav-search-result/nav-search-result.component";
+import { MyAppsPanelService } from "./my-apps-panel.service";
+import { ArvadosAppsPanelService } from "./arvados-apps-panel.service";
+import { LocalRepositoryService } from "../../../repository/local-repository.service";
 import { ConfigurationService } from "../../../app.config";
-import {FileRepositoryService} from "../../../file-repository/file-repository.service";
+import { FileRepositoryService } from "../../../file-repository/file-repository.service";
 
 
 @Component({
     selector: "ct-my-apps-panel",
     providers: [
-     {
+        {
             provide: MyAppsPanelService,
             useClass: ArvadosAppsPanelService
-     }],
+        }],
     templateUrl: "./my-apps-panel.component.html",
     styleUrls: ["./my-apps-panel.component.scss"]
 })
@@ -51,26 +51,26 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
 
     tree: TreeViewService;
 
-    @ViewChildren(NavSearchResultComponent, {read: ElementRef})
+    @ViewChildren(NavSearchResultComponent, { read: ElementRef })
     private searchResultComponents: QueryList<ElementRef>;
 
     public workbenchUrl: string;
 
     constructor(private cdr: ChangeDetectorRef,
-                private workbox: WorkboxService,
-                private modal: ModalService,
-                private dataGateway: DataGatewayService,
-                private fileRepository: FileRepositoryService,
-                private localRepository: LocalRepositoryService,
-                private platformRepository: PlatformRepositoryService,
-                private service: MyAppsPanelService,
-                private native: NativeSystemService,
-                private context: ContextService,
-                private _config: ConfigurationService) {
+        private workbox: WorkboxService,
+        private modal: ModalService,
+        private dataGateway: DataGatewayService,
+        private fileRepository: FileRepositoryService,
+        private localRepository: LocalRepositoryService,
+        private platformRepository: PlatformRepositoryService,
+        private service: MyAppsPanelService,
+        private native: NativeSystemService,
+        private context: ContextService,
+        private _config: ConfigurationService) {
         super();
 
-        this._config.discoveryDoc.take(1).subscribe((conf) => {
-            this.workbenchUrl = conf["workbenchUrl"];
+        this._config.configDoc.take(1).subscribe((conf) => {
+            this.workbenchUrl = conf["Services"]["Workbench1"]["ExternalURL"];
         });
     }
 
@@ -128,11 +128,11 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
             return results.map(result => {
                 const ds = AppHelper.DS;
 
-                const id    = result.path;
+                const id = result.path;
                 const label = result.path.split(ds).slice(-3, -1).join(ds);
                 const title = result.path.split(ds).pop();
 
-                let icon      = "fa-file";
+                let icon = "fa-file";
                 let relevance = result.relevance;
 
                 if (result.type === "Workflow") {
@@ -154,7 +154,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
                     } as TabData<any>,
                     type: "file",
                     dragEnabled: true,
-                    dragTransferData: {name: id, type: getDragTransferDataType(result)},
+                    dragTransferData: { name: id, type: getDragTransferDataType(result) },
                     dragLabel: title,
                     dragImageClass: getDragImageClass(result),
                     dragDropZones: ["graph-editor", "job-editor"]
@@ -165,37 +165,37 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
         const projectSearch = (term) =>
             Observable.combineLatest(this.platformRepository.getOpenProjects(), this.platformRepository.searchAppsFromOpenProjects(term))
                 .take(1).toPromise().then(result => {
-                const [projects, apps] = result;
+                    const [projects, apps] = result;
 
-                return apps.map(app => {
+                    return apps.map(app => {
 
-                    const project = projects.find((project) => project.id === app.project);
+                        const project = projects.find((project) => project.id === app.project);
 
-                    const revisionlessID = AppHelper.getRevisionlessID(app.id);
+                        const revisionlessID = AppHelper.getRevisionlessID(app.id);
 
-                    return {
-                        id: revisionlessID,
-                        icon: app.raw["class"] === "Workflow" ? "fa-share-alt" : "fa-terminal",
-                        title: app.name,
-                        label: app.id.split("/").join(" → "),
-                        relevance: 1.5,
-
-                        tabData: {
+                        return {
                             id: revisionlessID,
-                            isWritable: project.permissions.write,
-                            label: app.name,
-                            language: "json",
-                            type: app.raw["class"],
-                        } as TabData<any>,
+                            icon: app.raw["class"] === "Workflow" ? "fa-share-alt" : "fa-terminal",
+                            title: app.name,
+                            label: app.id.split("/").join(" → "),
+                            relevance: 1.5,
 
-                        dragEnabled: true,
-                        dragTransferData: {name: revisionlessID, type: "cwl"},
-                        dragLabel: app.name,
-                        dragImageClass: app.raw["class"] === "CommandLineTool" ? "icon-command-line-tool" : "icon-workflow",
-                        dragDropZones: ["graph-editor"]
-                    };
+                            tabData: {
+                                id: revisionlessID,
+                                isWritable: project.permissions.write,
+                                label: app.name,
+                                language: "json",
+                                type: app.raw["class"],
+                            } as TabData<any>,
+
+                            dragEnabled: true,
+                            dragTransferData: { name: revisionlessID, type: "cwl" },
+                            dragLabel: app.name,
+                            dragImageClass: app.raw["class"] === "CommandLineTool" ? "icon-command-line-tool" : "icon-workflow",
+                            dragDropZones: ["graph-editor"]
+                        };
+                    });
                 });
-            });
 
         this.searchContent.valueChanges
             .do(term => this.searchResults = undefined)
@@ -207,7 +207,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
                 projectSearch(term)
             ))
             .subscribeTracked(this, datasets => {
-                const combined     = [].concat(...datasets).sort((a, b) => b.relevance - a.relevance);
+                const combined = [].concat(...datasets).sort((a, b) => b.relevance - a.relevance);
                 this.searchResults = combined;
 
                 this.cdr.markForCheck();
@@ -235,12 +235,12 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
 
     private listenForAppOpening() {
 
-        const appOpening  = this.tree.open.filter(n => n.type === "app");
+        const appOpening = this.tree.open.filter(n => n.type === "app");
         const fileOpening = this.tree.open.filter(n => n.type === "file");
 
         appOpening.subscribe(node => {
             const label = node.data.name;
-            const type  = node.data.raw.class === "CommandLineTool" ? "CommandLineTool" : "Workflow";
+            const type = node.data.raw.class === "CommandLineTool" ? "CommandLineTool" : "Workflow";
 
             const tab = this.workbox.getOrCreateAppTab({
                 id: AppHelper.getRevisionlessID(node.data.id),
@@ -254,10 +254,10 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
         });
 
         fileOpening.subscribe(node => {
-            const id         = node.id;
-            const label      = node.label;
-            const language   = node.data.language;
-            const type       = node.data.type || "Code";
+            const id = node.id;
+            const label = node.label;
+            const language = node.data.language;
+            const type = node.data.type || "Code";
             const isWritable = node.data.isWritable;
 
             const tab = this.workbox.getOrCreateAppTab({
@@ -273,7 +273,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
     }
 
     private listenForGitRepoExpand() {
-        const gitRepoExpand  = this.tree.expansionChanges.filter(n => n.type === "gitrepo");
+        const gitRepoExpand = this.tree.expansionChanges.filter(n => n.type === "gitrepo");
         gitRepoExpand.subscribe(node => {
             node.data.start_load();
         });
@@ -282,17 +282,17 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
     private listenForContextMenu() {
 
         // Context streams
-        const localRoot           = this.tree.contextMenu.filter(data => data.node.type === "source" && data.node.id === "local");
-        const platformRoot        = this.tree.contextMenu.filter(data => data.node.type === "source" && data.node.id !== "local");
-        const userProject         = this.tree.contextMenu.filter((data) => data.node.type === "project");
+        const localRoot = this.tree.contextMenu.filter(data => data.node.type === "source" && data.node.id === "local");
+        const platformRoot = this.tree.contextMenu.filter(data => data.node.type === "source" && data.node.id !== "local");
+        const userProject = this.tree.contextMenu.filter((data) => data.node.type === "project");
         const topLevelLocalFolder = this.tree.contextMenu.filter((data) => data.node.type === "folder" && data.node.level === 2);
-        const nestedLocalFolder   = this.tree.contextMenu.filter(data => data.node.type === "folder" && data.node.level > 2);
-        const platformApp         = this.tree.contextMenu.filter(data => data.node.type === "app");
+        const nestedLocalFolder = this.tree.contextMenu.filter(data => data.node.type === "folder" && data.node.level > 2);
+        const platformApp = this.tree.contextMenu.filter(data => data.node.type === "app");
 
         const platformRootMenuItems = [
             new MenuItem("Open a Project", {
                 click: () => {
-                    const component     = this.modal.fromComponent(AddSourceModalComponent, "Open a Project");
+                    const component = this.modal.fromComponent(AddSourceModalComponent, "Open a Project");
                     component.activeTab = "platform";
                 }
             }),
@@ -332,7 +332,7 @@ export class MyAppsPanelComponent extends DirectiveBase implements AfterContentI
 
         const createFolderMenuItem = (node: TreeNode<any>) => new MenuItem("New Folder", {
             click: () => {
-                const modal      = this.modal.fromComponent(CreateLocalFolderModalComponent, `Create a new Folder in ${node.label}`);
+                const modal = this.modal.fromComponent(CreateLocalFolderModalComponent, `Create a new Folder in ${node.label}`);
                 modal.rootFolder = node.id;
             }
         });
