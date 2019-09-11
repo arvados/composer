@@ -1,37 +1,41 @@
-import {Injectable, Injector, ReflectiveInjector} from "@angular/core";
+// Copyright (C) The Composer Authors. All rights reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { Injectable, Injector, ReflectiveInjector } from "@angular/core";
 
 import * as Yaml from "js-yaml";
-import {LoadOptions} from "js-yaml";
+import { LoadOptions } from "js-yaml";
 
-import {Observable} from "rxjs/Observable";
-import {ReplaySubject} from "rxjs/ReplaySubject";
-import {App} from "../../../electron/src/sbg-api-client/interfaces/app";
-import {Project} from "../../../electron/src/sbg-api-client/interfaces/project";
-import {RawApp} from "../../../electron/src/sbg-api-client/interfaces/raw-app";
-import {AppMeta} from "../../../electron/src/storage/types/app-meta";
-import {RecentAppTab} from "../../../electron/src/storage/types/recent-app-tab";
-import {TabData} from "../../../electron/src/storage/types/tab-data-interface";
-import {IpcService} from "../services/ipc.service";
-import {AuthCredentials} from "../auth/model/auth-credentials";
-import {ExecutorConfig} from "../../../electron/src/storage/types/executor-config";
-import {CookieService} from 'ngx-cookie';
+import { Observable } from "rxjs/Observable";
+import { ReplaySubject } from "rxjs/ReplaySubject";
+import { App } from "../../../electron/src/sbg-api-client/interfaces/app";
+import { Project } from "../../../electron/src/sbg-api-client/interfaces/project";
+import { RawApp } from "../../../electron/src/sbg-api-client/interfaces/raw-app";
+import { AppMeta } from "../../../electron/src/storage/types/app-meta";
+import { RecentAppTab } from "../../../electron/src/storage/types/recent-app-tab";
+import { TabData } from "../../../electron/src/storage/types/tab-data-interface";
+import { IpcService } from "../services/ipc.service";
+import { AuthCredentials } from "../auth/model/auth-credentials";
+import { ExecutorConfig } from "../../../electron/src/storage/types/executor-config";
+import { CookieService } from 'ngx-cookie';
 import { Http, Headers, Response, BrowserXhr, RequestOptions, BaseRequestOptions, ResponseOptions, BaseResponseOptions, ConnectionBackend, XHRBackend, XSRFStrategy, CookieXSRFStrategy } from '@angular/http';
 import { ConfigurationService } from '../app.config'
 
 @Injectable()
 export class ArvadosRepositoryService {
 
-    private apps: ReplaySubject<App[]>                = new ReplaySubject(1);
-    private publicApps: ReplaySubject<App[]>          = new ReplaySubject(1);
-    private projects: ReplaySubject<Project[]>        = new ReplaySubject(1);
-    private openRepos: ReplaySubject<string[]>        = new ReplaySubject(1);
-    private expandedNodes: ReplaySubject<string[]>    = new ReplaySubject(1);
-    private openTabs: ReplaySubject<TabData<any>[]>   = new ReplaySubject(1);
+    private apps: ReplaySubject<App[]> = new ReplaySubject(1);
+    private publicApps: ReplaySubject<App[]> = new ReplaySubject(1);
+    private projects: ReplaySubject<Project[]> = new ReplaySubject(1);
+    private openRepos: ReplaySubject<string[]> = new ReplaySubject(1);
+    private expandedNodes: ReplaySubject<string[]> = new ReplaySubject(1);
+    private openTabs: ReplaySubject<TabData<any>[]> = new ReplaySubject(1);
     private recentApps: ReplaySubject<RecentAppTab[]> = new ReplaySubject(1);
-    private appMeta: ReplaySubject<Object>            = new ReplaySubject(1);
+    private appMeta: ReplaySubject<Object> = new ReplaySubject(1);
 
-    private credentials: ReplaySubject<AuthCredentials[]>             = new ReplaySubject(1);
-    private activeCredentials: ReplaySubject<AuthCredentials>         = new ReplaySubject(1);
+    private credentials: ReplaySubject<AuthCredentials[]> = new ReplaySubject(1);
+    private activeCredentials: ReplaySubject<AuthCredentials> = new ReplaySubject(1);
 
     private selectedAppsPanel: ReplaySubject<"myApps" | "publicApps"> = new ReplaySubject(1);
     private publicAppsGrouping: ReplaySubject<"toolkit" | "category"> = new ReplaySubject(1);
@@ -42,10 +46,10 @@ export class ArvadosRepositoryService {
     private repo_uuid = {};
 
     constructor(private ipc: IpcService,
-                private _http: Http,
-                private _cookieService: CookieService,
-                private _config: ConfigurationService,
-                private parentInjector:Injector) {
+        private _http: Http,
+        private _cookieService: CookieService,
+        private _config: ConfigurationService,
+        private parentInjector: Injector) {
 
         let injector = ReflectiveInjector.resolveAndCreate([
             Http,
@@ -68,18 +72,18 @@ export class ArvadosRepositoryService {
         this.openTabs.next([]);
         this.appMeta.next({});
 
-        console.log("checking token "+this.getToken("api_token"));
+        console.log("checking token " + this.getToken("api_token"));
         if (this.storeToken("api_token") || this.getToken("api_token")) {
-            console.log("using token "+ this.getToken("api_token"));
-            _config.configuration.subscribe((conf) => {
+            console.log("using token " + this.getToken("api_token"));
+            _config.configDoc.subscribe((conf) => {
                 const token = this.getToken("api_token");
-                const apiEndPoint = conf['apiEndPoint'];
+                const apiEndPoint = conf['Services']['Controller']['ExternalURL'];
                 const headers = new Headers({ "Authorization": "OAuth2 " + token });
                 const httpOptions = new RequestOptions({ "headers": headers });
-                this._http.get(apiEndPoint+"/arvados/v1/users/current", httpOptions).subscribe(
+                this._http.get(apiEndPoint + "/arvados/v1/users/current", httpOptions).subscribe(
                     response => {
                         const u = response.json();
-                        this.setActiveCredentials(new AuthCredentials(apiEndPoint+"/0123456789abcd", token, {
+                        this.setActiveCredentials(new AuthCredentials(apiEndPoint + "/0123456789abcd", token, {
                             username: u["username"],
                             first_name: u["first_name"],
                             last_name: u["last_name"],
@@ -105,11 +109,13 @@ export class ArvadosRepositoryService {
         const apiEndPoint = auth.url.substr(0, auth.url.length - 15);
         const headers = new Headers({ "Authorization": "OAuth2 " + auth.token });
         const httpOptions = new RequestOptions({ "headers": headers });
-        this._http.get(apiEndPoint+"/arvados/v1/repositories", httpOptions).subscribe(response => {
+        this._http.get(apiEndPoint + "/arvados/v1/repositories", httpOptions).subscribe(response => {
             this.gitRepos.next(response.json()["items"].map(i => {
                 this.repo_uuid[i["clone_urls"][1]] = i["uuid"];
-                return {name: i["name"],
-                        url: i["clone_urls"][1]}
+                return {
+                    name: i["name"],
+                    url: i["clone_urls"][1]
+                }
             }));
         });
     }
@@ -148,7 +154,7 @@ export class ArvadosRepositoryService {
                 return false;
             }
 
-            params[decodeURIComponent(kv.slice(0, e))] = decodeURIComponent(kv.slice(e+1));
+            params[decodeURIComponent(kv.slice(0, e))] = decodeURIComponent(kv.slice(e + 1));
         })
 
         if (!params.hasOwnProperty(token)) {
@@ -216,14 +222,14 @@ export class ArvadosRepositoryService {
     }
 
     private listen(key: string) {
-        return this.ipc.watch("watchLocalRepository", {key});
+        return this.ipc.watch("watchLocalRepository", { key });
     }
 
     private patch(data: { [key: string]: any }) {
         return this.ipc.request("patchLocalRepository", data);
     }
 
-    setNodeExpansion(nodesToExpand: string | string [], isExpanded: boolean): void {
+    setNodeExpansion(nodesToExpand: string | string[], isExpanded: boolean): void {
         this.expandedNodes.take(1).subscribe(expandedNodes => {
 
             const patch = new Set(expandedNodes);
@@ -268,7 +274,7 @@ export class ArvadosRepositoryService {
 
     saveAppRevision(appID: string, content: string, revisionNote?: string): Promise<string> {
 
-        const appContent = Yaml.safeLoad(content, {json: true} as LoadOptions);
+        const appContent = Yaml.safeLoad(content, { json: true } as LoadOptions);
         if (typeof revisionNote === "string") {
             appContent["sbg:revisionNotes"] = revisionNote;
         }
@@ -287,12 +293,12 @@ export class ArvadosRepositoryService {
                 return duplicateIndex === idx;
             }).slice(0, limit);
 
-            return this.patch({recentApps: update}).toPromise();
+            return this.patch({ recentApps: update }).toPromise();
         });
     }
 
     setOpenTabs(openTabs: TabData<any>[]): Promise<any> {
-        return this.patch({openTabs}).toPromise();
+        return this.patch({ openTabs }).toPromise();
     }
 
     getUpdates(appIDs: string[]): Promise<{
@@ -300,17 +306,17 @@ export class ArvadosRepositoryService {
         name: string;
         revision: number;
     }[]> {
-        return this.ipc.request("getAppUpdates", {appIDs}).toPromise();
+        return this.ipc.request("getAppUpdates", { appIDs }).toPromise();
     }
 
     getApp(id: string, forceFetch = false): Promise<RawApp> {
-        return this.ipc.request("getPlatformApp", {id, forceFetch}).toPromise().then((appText: string) => {
+        return this.ipc.request("getPlatformApp", { id, forceFetch }).toPromise().then((appText: string) => {
             return JSON.parse(appText);
         });
     }
 
     getAppContent(id: string, forceFetch = false): Promise<string> {
-        return this.ipc.request("getPlatformApp", {id, forceFetch}).toPromise();
+        return this.ipc.request("getPlatformApp", { id, forceFetch }).toPromise();
     }
 
     getProject(projectSlug: string): Promise<Project> {
@@ -339,7 +345,7 @@ export class ArvadosRepositoryService {
                             return true;
                         }
 
-                        const appID   = app.id.toLowerCase();
+                        const appID = app.id.toLowerCase();
                         const appName = app.name.toLowerCase();
 
                         return appID.indexOf(term) !== -1 || appName.indexOf(term) !== -1;
@@ -358,7 +364,7 @@ export class ArvadosRepositoryService {
                     return true;
                 }
 
-                const appID   = app.id.toLowerCase();
+                const appID = app.id.toLowerCase();
                 const appName = app.name.toLowerCase();
 
                 return appID.indexOf(term) !== -1 || appName.indexOf(term) !== -1;
@@ -424,7 +430,7 @@ export class ArvadosRepositoryService {
     }
 
     setSelectedAppsPanel(selectedAppsPanel: "myApps" | "publicApps"): Promise<any> {
-        return this.patch({selectedAppsPanel}).toPromise();
+        return this.patch({ selectedAppsPanel }).toPromise();
     }
 
     getPublicAppsGrouping(): Observable<"toolkit" | "category"> {
@@ -432,12 +438,14 @@ export class ArvadosRepositoryService {
     }
 
     setPublicAppsGrouping(publicAppsGrouping: "toolkit" | "category" | "none"): Promise<any> {
-        return this.patch({publicAppsGrouping}).toPromise();
+        return this.patch({ publicAppsGrouping }).toPromise();
     }
 
     getExecutorConfig(): Observable<ExecutorConfig> {
-        return Observable.of({path: "",
-                             choice: "",
-                             outDir: ""});
+        return Observable.of({
+            path: "",
+            choice: "",
+            outDir: ""
+        });
     }
 }

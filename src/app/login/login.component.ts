@@ -1,8 +1,12 @@
-import {Component, OnInit, ViewEncapsulation, Input} from "@angular/core";
-import {Observable} from "rxjs/Observable";
-import {ReplaySubject} from "rxjs/ReplaySubject";
-import {ConfigurationService} from "../app.config";
-import {environment} from './../../environments/environment';
+// Copyright (C) The Composer Authors. All rights reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+import { Component, OnInit, ViewEncapsulation, Input } from "@angular/core";
+import { Observable } from "rxjs/Observable";
+import { ReplaySubject } from "rxjs/ReplaySubject";
+import { ConfigurationService } from "../app.config";
+import { environment } from './../../environments/environment';
 
 @Component({
     encapsulation: ViewEncapsulation.None,
@@ -27,8 +31,8 @@ export class LoginComponent implements OnInit {
     constructor(private _config: ConfigurationService) { }
 
     ngOnInit(): any {
-        this._config.configuration.subscribe((conf) => {
-            let apiEndPoint = conf['apiEndPoint'];
+        this._config.configDoc.subscribe((conf) => {
+            let apiEndPoint = conf['Services']['Controller']['ExternalURL'];
             apiEndPoint = apiEndPoint.lastIndexOf('/') === apiEndPoint.length ? apiEndPoint.slice(0, -1) : apiEndPoint;
             const returnTo = encodeURIComponent(document.location.href.replace(/\?.*/, ''));
             this.apiEndPoint = apiEndPoint + '/login?return_to=' + returnTo;
