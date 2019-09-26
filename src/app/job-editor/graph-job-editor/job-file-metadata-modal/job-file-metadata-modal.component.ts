@@ -1,6 +1,6 @@
-import {Component, EventEmitter, Input, OnInit, Output} from "@angular/core";
-import {FormArray, FormControl, FormGroup} from "@angular/forms";
-import {ModalService} from "../../../ui/modal/modal.service";
+import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { FormArray, FormControl, FormGroup } from "@angular/forms";
+import { ModalService } from "../../../ui/modal/modal.service";
 
 @Component({
     selector: "ct-job-file-metadata-modal",
@@ -61,7 +61,7 @@ import {ModalService} from "../../../ui/modal/modal.service";
 export class JobFileMetadataModalComponent implements OnInit {
 
     @Input()
-    secondaryFiles: { class: "File" | "Directory", path: string }[] = [];
+    secondaryFiles: { class: "File" | "Directory", location: string }[] = [];
 
     @Input()
     metadata: Object;
@@ -90,7 +90,7 @@ export class JobFileMetadataModalComponent implements OnInit {
                 const formArray = (this.form.get("secondaryFiles") as FormArray);
                 formArray.push(new FormGroup({
                     class: new FormControl(entry.class),
-                    path: new FormControl(entry.path)
+                    location: new FormControl(entry.location)
                 }));
             }
         } catch (ex) {
@@ -108,7 +108,7 @@ export class JobFileMetadataModalComponent implements OnInit {
 
         ctrl.push(new FormGroup({
             class: new FormControl(type),
-            path: new FormControl(path)
+            location: new FormControl(path)
         }));
     }
 

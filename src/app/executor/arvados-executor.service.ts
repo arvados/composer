@@ -153,8 +153,8 @@ export class ArvExecutorService {
                 const headers = new Headers({
                     "Authorization": "OAuth2 " + tok.token
                 });
-                return self._config.configuration.take(1).flatMap((conf) => {
-                    const apiEndPoint = conf['apiEndPoint'];
+                return self._config.configDoc.take(1).flatMap((conf) => {
+                    const apiEndPoint = conf["Services"]["Controller"]["ExternalURL"];
                     return self._http.post(apiEndPoint + '/arvados/v1/container_requests',
                         body, new RequestOptions({ headers }));
                 });

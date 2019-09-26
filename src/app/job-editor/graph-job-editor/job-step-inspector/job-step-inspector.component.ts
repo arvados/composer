@@ -6,11 +6,11 @@ import {
     AbstractControl, ControlValueAccessor, FormControl, FormGroup,
     NG_VALUE_ACCESSOR
 } from "@angular/forms";
-import {WorkflowModel, WorkflowStepInputModel} from "cwlts/models";
-import {WorkflowInputParameterModel} from "cwlts/models/generic/WorkflowInputParameterModel";
-import {DirectiveBase} from "../../../util/directive-base/directive-base";
-import {InputParameterModel} from "cwlts/models/generic/InputParameterModel";
-import {NativeSystemService} from "../../../native/system/native-system.service";
+import { WorkflowModel, WorkflowStepInputModel } from "cwlts/models";
+import { WorkflowInputParameterModel } from "cwlts/models/generic/WorkflowInputParameterModel";
+import { DirectiveBase } from "../../../util/directive-base/directive-base";
+import { InputParameterModel } from "cwlts/models/generic/InputParameterModel";
+import { NativeSystemService } from "../../../native/system/native-system.service";
 
 @Component({
     selector: "ct-job-step-inspector",
@@ -53,17 +53,17 @@ export class JobStepInspectorComponent extends DirectiveBase implements OnInit, 
     writeValue(jobValue: any): void {
 
         this.jobValue = jobValue;
-        this.jobGroup.patchValue(jobValue, {emitEvent: false});
+        this.jobGroup.patchValue(jobValue, { emitEvent: false });
 
         for (const controlName in this.jobGroup.controls) {
 
             const control = this.jobGroup.get(controlName);
-            const kval    = this.jobValue[controlName];
+            const kval = this.jobValue[controlName];
 
             if (kval === null || kval === undefined) {
-                control.disable({emitEvent: false, onlySelf: true});
+                control.disable({ emitEvent: false, onlySelf: true });
             } else {
-                control.enable({emitEvent: false, onlySelf: true});
+                control.enable({ emitEvent: false, onlySelf: true });
             }
         }
 
@@ -83,7 +83,7 @@ export class JobStepInspectorComponent extends DirectiveBase implements OnInit, 
 
         this.jobGroup.valueChanges
             .map(changes => {
-                const out = {...this.jobValue, ...changes};
+                const out = { ...this.jobValue, ...changes };
 
                 for (const cname in this.jobGroup.controls) {
                     if (this.jobGroup.controls[cname].disabled) {
@@ -145,7 +145,7 @@ export class JobStepInspectorComponent extends DirectiveBase implements OnInit, 
 
         // Get top level id from prefix
         const inputId = prefix.split(".")[0];
-        const input   = this.stepInputs.find(i => i.id === inputId);
+        const input = this.stepInputs.find(i => i.id === inputId);
 
         this.change.emit({
             input,
@@ -164,7 +164,7 @@ export class JobStepInspectorComponent extends DirectiveBase implements OnInit, 
             this.recreateForms();
 
             if (this.jobValue) {
-                this.jobGroup.patchValue(this.jobValue, {emitEvent: false});
+                this.jobGroup.patchValue(this.jobValue, { emitEvent: false });
             }
         }
     }
@@ -208,9 +208,9 @@ export class JobStepInspectorComponent extends DirectiveBase implements OnInit, 
             this.jobGroup.addControl(input.id, control);
 
             if (input.type.type === "array") {
-                control.setValue([], {emitEvent: false});
+                control.setValue([], { emitEvent: false });
             } else if (input.type.type === "record") {
-                control.setValue({}, {emitEvent: false});
+                control.setValue({}, { emitEvent: false });
             }
 
         }
@@ -257,7 +257,7 @@ export class JobStepInspectorComponent extends DirectiveBase implements OnInit, 
     enableEditing(input: InputParameterModel): void {
 
         const inputFormField = this.jobGroup.get(input.id);
-        inputFormField.enable({onlySelf: true});
+        inputFormField.enable({ onlySelf: true });
 
 
         let value;
@@ -289,8 +289,8 @@ export class JobStepInspectorComponent extends DirectiveBase implements OnInit, 
                     properties.push("multiSelections");
                 }
 
-                this.native.openFileChoiceDialog({properties}).then(filePaths => {
-                    const fileValues = filePaths.map(p => ({class: type, path: p}));
+                this.native.openFileChoiceDialog({ properties }).then(filePaths => {
+                    const fileValues = filePaths.map(p => ({ class: type, location: p }));
 
                     const value = !(isArray) ? fileValues[0] : fileValues;
                     inputFormField.setValue(value);

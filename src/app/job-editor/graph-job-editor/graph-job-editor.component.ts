@@ -1,21 +1,21 @@
-import {AfterViewInit, Component, ElementRef, EventEmitter, Inject, Input, OnInit, Output, TemplateRef, ViewChild} from "@angular/core";
-import {FormControl} from "@angular/forms";
-import {SelectionPlugin, SVGArrangePlugin, SVGEdgeHoverPlugin, SVGNodeMovePlugin, Workflow as WorkflowGraph, ZoomPlugin} from "cwl-svg";
-import {StepModel} from "cwlts/models/generic/StepModel";
-import {WorkflowInputParameterModel} from "cwlts/models/generic/WorkflowInputParameterModel";
-import {WorkflowModel} from "cwlts/models/generic/WorkflowModel";
-import {WorkflowOutputParameterModel} from "cwlts/models/generic/WorkflowOutputParameterModel";
-import {JobHelper} from "cwlts/models/helpers/JobHelper";
-import {AppMetaManager} from "../../core/app-meta/app-meta-manager";
-import {APP_META_MANAGER} from "../../core/app-meta/app-meta-manager-factory";
-import {AppHelper} from "../../core/helpers/AppHelper";
-import {DirectiveBase} from "../../util/directive-base/directive-base";
-import {SVGExecutionProgressPlugin} from "../svg-execution-progress-plugin/svg-execution-progress-plugin";
-import {SVGJobFileDropPlugin} from "../../workflow-editor/svg-plugins/job-file-drop/job-file-drop";
-import {SVGRequiredInputMarkup} from "../../workflow-editor/svg-plugins/required-input-markup/required-input-markup";
-import {EditorInspectorService} from "../../editor-common/inspector/editor-inspector.service";
-import {Store} from "@ngrx/store";
-import {StepExecution} from "../../execution/models";
+import { AfterViewInit, Component, ElementRef, EventEmitter, Inject, Input, OnInit, Output, TemplateRef, ViewChild } from "@angular/core";
+import { FormControl } from "@angular/forms";
+import { SelectionPlugin, SVGArrangePlugin, SVGEdgeHoverPlugin, SVGNodeMovePlugin, Workflow as WorkflowGraph, ZoomPlugin } from "cwl-svg";
+import { StepModel } from "cwlts/models/generic/StepModel";
+import { WorkflowInputParameterModel } from "cwlts/models/generic/WorkflowInputParameterModel";
+import { WorkflowModel } from "cwlts/models/generic/WorkflowModel";
+import { WorkflowOutputParameterModel } from "cwlts/models/generic/WorkflowOutputParameterModel";
+import { JobHelper } from "cwlts/models/helpers/JobHelper";
+import { AppMetaManager } from "../../core/app-meta/app-meta-manager";
+import { APP_META_MANAGER } from "../../core/app-meta/app-meta-manager-factory";
+import { AppHelper } from "../../core/helpers/AppHelper";
+import { DirectiveBase } from "../../util/directive-base/directive-base";
+import { SVGExecutionProgressPlugin } from "../svg-execution-progress-plugin/svg-execution-progress-plugin";
+import { SVGJobFileDropPlugin } from "../../workflow-editor/svg-plugins/job-file-drop/job-file-drop";
+import { SVGRequiredInputMarkup } from "../../workflow-editor/svg-plugins/required-input-markup/required-input-markup";
+import { EditorInspectorService } from "../../editor-common/inspector/editor-inspector.service";
+import { Store } from "@ngrx/store";
+import { StepExecution } from "../../execution/models";
 
 @Component({
     selector: "ct-graph-job-editor",
@@ -38,7 +38,7 @@ export class GraphJobEditorComponent extends DirectiveBase implements OnInit, Af
     @ViewChild("canvas")
     private canvas: ElementRef;
 
-    @ViewChild("inspector", {read: TemplateRef})
+    @ViewChild("inspector", { read: TemplateRef })
     private inspectorTemplate: TemplateRef<any>;
 
     private graph: WorkflowGraph;
@@ -48,8 +48,8 @@ export class GraphJobEditorComponent extends DirectiveBase implements OnInit, Af
     private inspectedInputs = [];
 
     constructor(private inspector: EditorInspectorService,
-                private store: Store<any>,
-                @Inject(APP_META_MANAGER) private metaManager: AppMetaManager) {
+        private store: Store<any>,
+        @Inject(APP_META_MANAGER) private metaManager: AppMetaManager) {
         super();
 
 
@@ -84,19 +84,19 @@ export class GraphJobEditorComponent extends DirectiveBase implements OnInit, Af
 
         if (inputEl) {
 
-            const inputID    = inputEl.getAttribute("data-id");
+            const inputID = inputEl.getAttribute("data-id");
             const inputModel = this.model.inputs.find(input => input.id === inputID) as WorkflowInputParameterModel;
 
             const inputTypeIsArray = inputModel.type.type === "array";
 
-            const job           = this.jobControl.value;
+            const job = this.jobControl.value;
             const inputJobValue = job[inputID];
 
             const jobValueIsArray = Array.isArray(inputJobValue);
 
-            const newEntry = {class: type, path: data.name};
+            const newEntry = { class: type, location: data.name };
 
-            const patch = {[inputID]: newEntry} as any;
+            const patch = { [inputID]: newEntry } as any;
 
             if (jobValueIsArray) {
                 patch[inputID] = inputJobValue.concat(newEntry);
@@ -106,7 +106,7 @@ export class GraphJobEditorComponent extends DirectiveBase implements OnInit, Af
                 patch[inputID] = newEntry;
             }
 
-            const newJob = {...job, ...patch};
+            const newJob = { ...job, ...patch };
 
             this.jobControl.patchValue(newJob);
         }
@@ -163,7 +163,7 @@ export class GraphJobEditorComponent extends DirectiveBase implements OnInit, Af
 
         this.store.select("jobEditor", "progress", this.appID, "stepExecution").distinctUntilChanged()
             .subscribeTracked(this, (states: StepExecution[] = []) => {
-                const update = states.reduce((acc, step) => ({...acc, [step.id]: step.state}), {});
+                const update = states.reduce((acc, step) => ({ ...acc, [step.id]: step.state }), {});
                 this.graph.getPlugin(SVGExecutionProgressPlugin).setAllStates(update)
             });
     }
@@ -179,16 +179,16 @@ export class GraphJobEditorComponent extends DirectiveBase implements OnInit, Af
             }
         }
 
-        return {...nullJob, ...job};
+        return { ...nullJob, ...job };
     }
 
 
     updateJob(jobObject = {}) {
 
         const normalizedJob = this.normalizeJob(jobObject);
-        const controlValue  = normalizedJob;
+        const controlValue = normalizedJob;
 
-        this.jobControl.patchValue(controlValue, {emitEvent: false});
+        this.jobControl.patchValue(controlValue, { emitEvent: false });
 
         this.graph.getPlugin(SVGJobFileDropPlugin).updateToJobState(controlValue);
 
@@ -201,8 +201,8 @@ export class GraphJobEditorComponent extends DirectiveBase implements OnInit, Af
     findParentInputOfType(el: Element, type: string) {
         while (el) {
 
-            const isInput     = el.classList.contains("input");
-            const isType      = el.classList.contains(`type-${type}`);
+            const isInput = el.classList.contains("input");
+            const isType = el.classList.contains(`type-${type}`);
             const isArrayType = el.classList.contains(`type-array`) && el.classList.contains(`items-${type}`);
 
             if (isInput && (isType || isArrayType)) {
